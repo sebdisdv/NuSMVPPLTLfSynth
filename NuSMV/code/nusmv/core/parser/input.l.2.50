@@ -34,6 +34,8 @@
 "ISA"                   {nusmv_yylval.lineno = nusmv_yylineno; return(TOK_ISA);}
 "ASSIGN"                {nusmv_yylval.lineno = nusmv_yylineno; return(TOK_ASSIGN);}
 
+"CONTROLLABLES"         {nusmv_yylval.lineno = nusmv_yylineno; return(TOK_CONTROLLABLES);}
+
 "array"                 {nusmv_yylval.lineno = nusmv_yylineno; return(TOK_ARRAY);}
 "bool"                  {nusmv_yylval.lineno = nusmv_yylineno; return(TOK_BOOL);}
 "of"                    {nusmv_yylval.lineno = nusmv_yylineno; return(TOK_OF);}

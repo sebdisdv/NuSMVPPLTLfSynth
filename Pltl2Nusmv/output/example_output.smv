@@ -6,11 +6,13 @@ VAR
 DEFINE
    LTL_1_SPECF_0 := (q | (p & LTL_1_SPECF_1));
 INIT
-   LTL_1_SPECF_0
+   LTL_1_SPECF_0;
 INIT
-   LTL_1_SPECF_1 = FALSE
+   LTL_1_SPECF_1 = FALSE;
 TRANS
-   LTL_1_SPECF_0 = next(LTL_1_SPECF_1)
-
+   LTL_1_SPECF_0 = next(LTL_1_SPECF_1);
 CONTROLLABLES
-	q 
+	p; 
+
+
+

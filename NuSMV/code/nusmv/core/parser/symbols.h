@@ -67,6 +67,8 @@ enum NUSMV_CORE_SYMBOLS {
   MODTYPE,
   LAMBDA, /* 120 */
   CONSTANTS,
+  CONTROLLABLES,
+  
 
   /* To be moved elsewhere */
   PRED,

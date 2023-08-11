@@ -149,7 +149,7 @@ static node_ptr node2maincontext(node_ptr node);
 %left  <lineno> TOK_MOD TOK_PLUS TOK_MINUS TOK_TIMES TOK_DIVIDE
 %left  <lineno> TOK_NEXT TOK_SMALLINIT TOK_CONCATENATION
 %left  <lineno> TOK_LB TOK_DOT TOK_BIT
-
+%left  <lineno> TOK_CONTROLLABLES
 
 
 /* all nonterminals return a parse tree node */
@@ -187,6 +187,7 @@ static node_ptr node2maincontext(node_ptr node);
 %type <node> invarspec ctlspec ltlspec pslspec compute
 %type <node> _invarspec _ctlspec _ltlspec _compute
 %type <node> constants constants_expression
+%type <node> controllables
 %type <node> compute_expression
 %type <node> isa
 

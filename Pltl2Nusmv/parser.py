@@ -1,5 +1,6 @@
 import subprocess
 import argparse
+import os.path as path
 
 from pylogics.parsers import parse_pltl
 from pylogics.syntax.pltl import Atomic, Since
@@ -12,7 +13,7 @@ NUSMV_EXEC_PATH = "NuSMV/build/bin/ltl2smv"
 def get_tableaux_lines(input_file):
     tableaux = None
     try:
-        tableaux = subprocess.run([NUSMV_EXEC_PATH,"1", input_file], capture_output=True, text=True, check=True)
+        tableaux = subprocess.run([path.abspath(NUSMV_EXEC_PATH),"1", input_file], capture_output=True, text=True, check=True)
     except subprocess.SubprocessError:
         return None
     return tableaux.stdout.split("\n")
@@ -31,7 +32,8 @@ class PLTL2NuSmv():
         self._fname = f"Pltl2Nusmv/output/{fname}.smv"
 
         self._atomic_vars = self._extract_atomic_varaibles()
-        self._controllable = self._get_random_controllable()
+        self._controllable = [] # self._get_random_controllable()
+        self._tableaux_vars = []
 
     def _extract_atomic_varaibles(self):
         """
@@ -40,7 +42,7 @@ class PLTL2NuSmv():
         queue = [self._formula]
         names = set()
         while len(queue) != 0:
-            curr_node = queue.pop(0)
+            curr_node = queue.pop()
             curr_node_type = type(curr_node)
             if curr_node_type == Atomic:
                 names.add(curr_node.name)
@@ -56,10 +58,13 @@ class PLTL2NuSmv():
         """
         return a random set of controllable variables extracted randomly from the set of atomic variables
         """
-        return sample(list(self._atomic_vars), k= int(len(self._atomic_vars) // 2))
+        return sample(list(self._atomic_vars) + self._tableaux_vars, k= int(len(self._atomic_vars) // 2))
 
     def write_nusmv(self):
         tableaux = get_tableaux_lines(self._f_file)
+        
+        if tableaux == None:
+            raise ValueError("Something went wrong for the subproccess handling the creation of the tablueaux")
         with open(self._fname, "w") as file:
             file.write("MODULE main\n")
 
@@ -68,14 +73,22 @@ class PLTL2NuSmv():
             for name in self._atomic_vars:
                 file.write(f"\t{name} : boolean;\n")
             index_st = tableaux.index("VAR")
+            index_define = tableaux.index("DEFINE")
+
+            for i in range(index_st+1, index_define):
+                var = tableaux[i].split()[0]
+                self._tableaux_vars.append(var)
 
             for i in range(index_st+1, len(tableaux)):
                 file.write(f"{tableaux[i]}\n")
 
             file.write("CONTROLLABLES\n")
             file.write("\t")
+
+            self._controllable = self._get_random_controllable()
             for var in self._controllable:
                 file.write(f"{var} ")
+            file.write(";")
             file.write("\n")
 
     def __repr__(self):
@@ -115,4 +128,4 @@ if __name__ == "__main__":
         type=str,
         help="The name for the output smv file"
     )
-    main(argsparser.parse_args())
+    main(settings=argsparser.parse_args())

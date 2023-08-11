@@ -98,6 +98,14 @@ typedef struct NuSMVEnv_TAG*  NuSMVEnv_ptr;
 
   \todo Missing description
 */
+#define ENV_CONTROLLABLES "+B#_controllables"
+
+
+/*!
+  \brief \todo Missing synopsis
+
+  \todo Missing description
+*/
 #define ENV_WORD_NUMBER_MGR "+$_word_number_mgr"
 
 /*!

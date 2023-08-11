@@ -540,6 +540,7 @@ declaration  : isa
              | pslspec
              | compute
              | constants
+             | controllables
              ;
 
 /*
@@ -745,6 +746,13 @@ constants_expression
              | constants_expression TOK_COMMA complex_atom {$$ = cons(NODEMGR, $3, $1);}
 
              ;
+
+
+controllables : TOK_CONTROLLABLES constants_expression TOK_SEMI
+                {$$ = new_lined_node(NODEMGR, CONTROLLABLES, $2, Nil, $1);}
+              ;
+
+
 
 
 
