@@ -13,7 +13,7 @@ NUSMV_EXEC_PATH = "NuSMV/build/bin/ltl2smv"
 def get_tableaux_lines(input_file):
     tableaux = None
     try:
-        tableaux = subprocess.run([path.abspath(NUSMV_EXEC_PATH),"1", input_file], capture_output=True, text=True, check=True)
+        tableaux = subprocess.run([NUSMV_EXEC_PATH,"1", input_file], capture_output=True, text=True, check=True)
     except subprocess.SubprocessError:
         return None
     return tableaux.stdout.split("\n")
@@ -82,13 +82,13 @@ class PLTL2NuSmv():
             for i in range(index_st+1, len(tableaux)):
                 file.write(f"{tableaux[i]}\n")
 
-            file.write("CONTROLLABLES\n")
-            file.write("\t")
+            file.write("CONTROLLABLES   ")
+            
 
             self._controllable = self._get_random_controllable()
-            for var in self._controllable:
-                file.write(f"{var} ")
-            file.write(";")
+            for i in range(len(self._controllable) - 1):
+                file.write(f"{self._controllable[i]},")
+            file.write(f"{self._controllable[-1]};")
             file.write("\n")
 
     def __repr__(self):
