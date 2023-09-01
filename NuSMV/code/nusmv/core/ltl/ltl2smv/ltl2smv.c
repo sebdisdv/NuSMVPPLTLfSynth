@@ -1085,6 +1085,18 @@ static node_ptr generate_smv_module(const NuSMVEnv_ptr env,
   /* add the INIT with the name of the whole expression */
   all_declr = cons(nodemgr, new_node(nodemgr, INIT, whole_expression_name, Nil), Nil);
 
+  /* Add a new name as the name of the whole formula */
+  all_declr = cons(nodemgr, new_node(nodemgr, DEFINE,
+                                     cons(nodemgr,
+                                          new_node(nodemgr, EQDEF,
+                                                   find_node(nodemgr, ATOM,
+                                                             (node_ptr)generate_string(strings, "%s%u%stop_level_formula_name",
+                                                                         pre_prefix, specificationNumber,
+                                                                         prefix_name), Nil),
+                                                   whole_expression_name), Nil), Nil), all_declr);
+
+  
+
   if (single_justice) {
     const ExprMgr_ptr exprs =
       EXPR_MGR(NuSMVEnv_get_value(env, ENV_EXPR_MANAGER));
