@@ -150,7 +150,8 @@ static node_ptr node2maincontext(node_ptr node);
 %left  <lineno> TOK_NEXT TOK_SMALLINIT TOK_CONCATENATION
 %left  <lineno> TOK_LB TOK_DOT TOK_BIT
 %left  <lineno> TOK_CONTROLLABLES
-
+%left  <lineno> TOK_NOTCONTROLLABLES
+%left  <lineno> TOK_PNFVARS
 
 /* all nonterminals return a parse tree node */
 %type <node> number integer number_word number_frac number_real number_exp subrange subrangetype
@@ -188,6 +189,8 @@ static node_ptr node2maincontext(node_ptr node);
 %type <node> _invarspec _ctlspec _ltlspec _compute
 %type <node> constants constants_expression
 %type <node> controllables
+%type <node> notcontrollables
+%type <node> pnfvars
 %type <node> compute_expression
 %type <node> isa
 

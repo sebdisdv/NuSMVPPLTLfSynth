@@ -541,6 +541,8 @@ declaration  : isa
              | compute
              | constants
              | controllables
+             | notcontrollables
+             | pnfvars
              ;
 
 /*
@@ -751,6 +753,15 @@ constants_expression
 controllables : TOK_CONTROLLABLES constants_expression TOK_SEMI
                 {$$ = new_lined_node(NODEMGR, CONTROLLABLES, $2, Nil, $1);}
               ;
+
+notcontrollables : TOK_NOTCONTROLLABLES constants_expression TOK_SEMI
+                {$$ = new_lined_node(NODEMGR, NOTCONTROLLABLES, $2, Nil, $1);}
+              ;
+
+pnfvars  : TOK_PNFVARS constants_expression TOK_SEMI
+                {$$ = new_lined_node(NODEMGR, PNFVARS, $2, Nil, $1);}
+              ;
+       
 
 
 

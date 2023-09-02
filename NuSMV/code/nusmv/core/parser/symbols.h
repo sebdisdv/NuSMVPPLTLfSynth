@@ -68,6 +68,8 @@ enum NUSMV_CORE_SYMBOLS {
   LAMBDA, /* 120 */
   CONSTANTS,
   CONTROLLABLES,
+  NOTCONTROLLABLES,
+  PNFVARS,
   
 
   /* To be moved elsewhere */

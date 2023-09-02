@@ -24,6 +24,8 @@ class PLTL2NuSmv():
 
     def __init__(self,input_file:str, fname: str):
         self._f_file = input_file
+        self._tableaux_vars = []
+
         with open(input_file) as f:
             self.formula_str = f.readline()[:-1]
             
@@ -31,9 +33,18 @@ class PLTL2NuSmv():
 
         self._fname = f"Pltl2Nusmv/output/{fname}.smv"
 
+        self._tableaux = get_tableaux_lines(self._f_file)
+        if self._tableaux == None:
+            raise ValueError("Something went wrong for the subproccess handling the creation of the tablueaux")
+        index_st = self._tableaux.index("VAR")
+        index_define = self._tableaux.index("DEFINE")
+        for i in range(index_st+1, index_define):
+            var = self._tableaux[i].split()[0]
+            self._tableaux_vars.append(var)
+
         self._atomic_vars = self._extract_atomic_varaibles()
-        self._controllable = [] # self._get_random_controllable()
-        self._tableaux_vars = []
+        self._controllable = self._get_random_controllable()
+        self._notcontrollable = self._get_notcontrollable()
 
     def _extract_atomic_varaibles(self):
         """
@@ -58,13 +69,15 @@ class PLTL2NuSmv():
         """
         return a random set of controllable variables extracted randomly from the set of atomic variables
         """
-        return sample(list(self._atomic_vars) + self._tableaux_vars, k= int(len(self._atomic_vars) // 2))
+        return sample(list(self._atomic_vars), k= int(len(self._atomic_vars) // 2))
+
+    def _get_notcontrollable(self):
+        """
+        return a random set of controllable variables extracted randomly from the set of atomic variables
+        """
+        return [ x for x in self._atomic_vars if x not in self._controllable]
 
     def write_nusmv(self):
-        tableaux = get_tableaux_lines(self._f_file)
-        
-        if tableaux == None:
-            raise ValueError("Something went wrong for the subproccess handling the creation of the tablueaux")
         with open(self._fname, "w") as file:
             file.write("MODULE main\n")
 
@@ -72,33 +85,42 @@ class PLTL2NuSmv():
             file.write("VAR\n")
             for name in self._atomic_vars:
                 file.write(f"\t{name} : boolean;\n")
-            index_st = tableaux.index("VAR")
-            index_define = tableaux.index("DEFINE")
-
-            for i in range(index_st+1, index_define):
-                var = tableaux[i].split()[0]
-                self._tableaux_vars.append(var)
-
-            for i in range(index_st+1, len(tableaux)):
-                file.write(f"{tableaux[i]}\n")
+            
+            index_st = self._tableaux.index("VAR")
+            index_init_top_level_formula = self._tableaux.index("INIT")
+            for i in range(index_st+1, index_init_top_level_formula):
+                file.write(f"{self._tableaux[i]}\n")
+            for i in range(index_init_top_level_formula+2, len(self._tableaux)):
+                file.write(f"{self._tableaux[i]}\n")
 
             file.write("CONTROLLABLES   ")
-            
-
-            self._controllable = self._get_random_controllable()
             for i in range(len(self._controllable) - 1):
                 file.write(f"{self._controllable[i]},")
             file.write(f"{self._controllable[-1]};")
             file.write("\n")
 
+            file.write("NOTCONTROLLABLES    ")
+            for i in range(len(self._notcontrollable) - 1):
+                file.write(f"{self._notcontrollable[i]},")
+            file.write(f"{self._notcontrollable[-1]};\n")
+
+            file.write("PNFVARS     ")
+            for i in range(len(self._tableaux_vars) - 1):
+                file.write(f"{self._tableaux_vars[i]},")
+            file.write(f"{self._tableaux_vars[-1]};\n")
+
+            
+
     def __repr__(self):
-        return f"{self.formula_str}\n{self._controllable}"
+        return f"{self.formula_str}\n{self._controllable}\n{self._notcontrollable}"
 
             
             
 def main(settings):
     seed(settings.seed)
     fsmv = PLTL2NuSmv(input_file=settings.input, fname=settings.fname)
+    # print(fsmv._controllable)
+    # print(fsmv._notcontrollable)
     fsmv.write_nusmv()
 
 if __name__ == "__main__":

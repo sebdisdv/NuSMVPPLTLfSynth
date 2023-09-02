@@ -1083,6 +1083,7 @@ static node_ptr generate_smv_module(const NuSMVEnv_ptr env,
         LTL_MODULE_BASE_NAME : prefixes->ltl_module_base_name);
 
   /* add the INIT with the name of the whole expression */
+  // This is then removed from the python parser
   all_declr = cons(nodemgr, new_node(nodemgr, INIT, whole_expression_name, Nil), Nil);
 
   /* Add a new name as the name of the whole formula */
