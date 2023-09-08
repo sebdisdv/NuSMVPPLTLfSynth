@@ -87,10 +87,8 @@ class PLTL2NuSmv():
                 file.write(f"\t{name} : boolean;\n")
             
             index_st = self._tableaux.index("VAR")
-            index_init_top_level_formula = self._tableaux.index("INIT")
-            for i in range(index_st+1, index_init_top_level_formula):
-                file.write(f"{self._tableaux[i]}\n")
-            for i in range(index_init_top_level_formula+2, len(self._tableaux)):
+            # index_init_top_level_formula = self._tableaux.index("INIT")
+            for i in range(index_st+1, len(self._tableaux)):
                 file.write(f"{self._tableaux[i]}\n")
 
             file.write("CONTROLLABLES   ")

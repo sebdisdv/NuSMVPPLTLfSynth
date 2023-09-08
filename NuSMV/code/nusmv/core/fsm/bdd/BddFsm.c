@@ -827,6 +827,47 @@ BddStatesInputs BddFsm_get_strong_backward_image(const BddFsm_ptr self,
 }
 
 
+// fo
+BddStatesInputs BddFsm_get_strong_pre_image(const BddFsm_ptr self,
+                                                 BddStates states, 
+                                                 BddVarSet_ptr controllable,
+                                                 BddVarSet_ptr notcontrollable,
+                                                 BddVarSet_ptr pnfvars)
+{
+
+  bdd_ptr result, trans, imply, ex_pnf, ex_contr, tmp;
+
+  
+  trans = BddFsm_get_monolithic_trans_bdd(self);
+  
+  
+  imply = bdd_imply(self->dd, trans, states);
+  bdd_free(self->dd, trans);
+
+  ex_pnf = bdd_forsome(self->dd, imply, pnfvars);
+  bdd_free(self->dd, imply);
+  
+  ex_contr = bdd_forsome(self->dd, ex_pnf, controllable);
+  bdd_free(self->dd, ex_pnf);
+
+  result = bdd_forall(self->dd, ex_contr, notcontrollable);
+  bdd_free(self->dd, ex_contr);
+
+  //bdd_forsome() second argument is a cube
+  //bdd_forall()
+  //bdd_forsome()
+  //
+  tmp = (bdd_ptr) bdd_fsm_get_legal_state_input(self);
+  bdd_and_accumulate(self->dd, &result, tmp);
+  bdd_free(self->dd, tmp);
+
+  return BDD_STATES_INPUTS(result);
+}
+
+
+
+
+
 BddStatesInputs BddFsm_get_fair_states_inputs(BddFsm_ptr self)
 {
   BDD_FSM_CHECK_INSTANCE(self);

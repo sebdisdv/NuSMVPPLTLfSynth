@@ -72,7 +72,7 @@ static int UsageCheckLtlSpec(const NuSMVEnv_ptr env);
 
 void Ltl_Init(NuSMVEnv_ptr env)
 {
-  Cmd_CommandAdd(env, "check_ltlspec", CommandCheckLtlSpec, 0, false);
+  Cmd_CommandAdd(env, "check_ltlspec", CommandCheckLtlSpec, 0, false); // farne un altro per la sintesi senza dover fare un pacchetto nuovo
 }
 
 /*!
@@ -114,7 +114,7 @@ void Ltl_Init(NuSMVEnv_ptr env)
 
 */
 
-int CommandCheckLtlSpec(NuSMVEnv_ptr env, int argc, char** argv)
+int CommandCheckLtlSpec(NuSMVEnv_ptr env, int argc, char** argv) // simile a un main
 {
   const StreamMgr_ptr streams =
     STREAM_MGR(NuSMVEnv_get_value(env, ENV_STREAM_MANAGER));
