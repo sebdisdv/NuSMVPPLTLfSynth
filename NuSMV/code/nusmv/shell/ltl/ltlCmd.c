@@ -54,12 +54,27 @@
 #include "nusmv/core/enc/enc.h"
 #include "nusmv/core/compile/compile.h" /* to check for presence of compassion */
 
+
+// For pre image computation
+#include "nusmv/core/fsm/bdd/BddFsm.h"
+#include "nusmv/core/fsm/bdd/bdd.h"
+#include "nusmv/core/fsm/bdd/bddInt.h"
+#include "nusmv/core/fsm/bdd/BddFsm_private.h"
+
+#include "nusmv/core/enc/operators.h"
+
 /*---------------------------------------------------------------------------*/
 /* Variable declarations                                                     */
 /*---------------------------------------------------------------------------*/
 extern cmp_struct_ptr cmps;
+extern BddVarSet_ptr controllable;
+extern BddVarSet_ptr notcontrollable;
+extern BddVarSet_ptr pnfvars;
+
 
 int CommandCheckLtlSpec(NuSMVEnv_ptr env, int argc, char** argv);
+
+int CommandCheckRealizability(NuSMVEnv_ptr env, int argc, char** argv);
 
 /*---------------------------------------------------------------------------*/
 /* Static function prototypes                                                */
@@ -73,7 +88,68 @@ static int UsageCheckLtlSpec(const NuSMVEnv_ptr env);
 void Ltl_Init(NuSMVEnv_ptr env)
 {
   Cmd_CommandAdd(env, "check_ltlspec", CommandCheckLtlSpec, 0, false); // farne un altro per la sintesi senza dover fare un pacchetto nuovo
+  Cmd_CommandAdd(env, "check_realizability", CommandCheckRealizability, 0, false);
 }
+
+
+boolean Realizable(NuSMVEnv_ptr env, BddFsm_ptr fsm, bdd_ptr property){
+    bdd_ptr initial, check_condition, old_bf, bf, notbf;
+    boolean realizable = false;
+
+    initial = BddFsm_get_init(fsm);
+
+    old_bf = Nil;
+    bf = property;
+
+   
+    while(node_equal(old_bf, bf, env) && !realizable){
+      old_bf = bf;
+      bf = BddFsm_get_strong_pre_image_fa_ncontr_ex_contr_ex_pnf(fsm, old_bf);
+      bf = bdd_or(fsm, bf, old_bf);
+
+      notbf = bdd_not(fsm, bf);
+      check_condition = bdd_and(fsm, notbf, initial);
+
+      if(bdd_isnot_false(fsm, check_condition)){
+        realizable = true;
+      }
+
+      bdd_free(fsm->dd, notbf);
+      bdd_free(fsm->dd, check_condition);
+
+    }
+
+
+    // Free local variables
+    bdd_free(fsm->dd, old_bf);
+    bdd_free(fsm->dd, bf);
+    bdd_free(fsm->dd, initial);
+    
+    
+    return realizable;
+
+}
+
+
+int CommandCheckRealizability(NuSMVEnv_ptr env, int argc, char** argv){
+   DDMgr_ptr dd_manager = DD_MGR(NuSMVEnv_get_value(env, ENV_DD_MGR));
+   BddFsm_ptr fsm = BDD_FSM(NuSMVEnv_get_value(env, ENV_BDD_FSM));
+   bdd_ptr property;
+   
+
+   // property= BddEnc_expr_to_bdd(enc, , Nil);
+
+    if (Realizable(env, fsm, property)){
+      printf("Realizable\n");
+    } else {
+      printf("Not realizable\n");
+    }
+  
+   return 0;
+}
+
+
+
 
 /*!
   \command{check_ltlspec} Performs LTL model checking

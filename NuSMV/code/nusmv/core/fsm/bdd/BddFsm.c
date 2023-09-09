@@ -66,6 +66,16 @@
 
 
 /*---------------------------------------------------------------------------*/
+/* Extern Variables                                                          */
+
+extern BddVarSet_ptr controllable;
+extern BddVarSet_ptr notcontrollable;
+extern BddVarSet_ptr pnfvars;
+
+/*---------------------------------------------------------------------------*/
+
+
+/*---------------------------------------------------------------------------*/
 /* Macro declarations                                                        */
 /*---------------------------------------------------------------------------*/
 
@@ -780,7 +790,7 @@ BddStatesInputs BddFsm_get_weak_backward_image(const BddFsm_ptr self,
 
 
 BddStatesInputs BddFsm_get_strong_backward_image(const BddFsm_ptr self,
-                                                 BddStates states)
+                                                 BddStates states) // strong pre image
 {
   bdd_ptr not_states;
   bdd_ptr tmp, result;
@@ -827,12 +837,9 @@ BddStatesInputs BddFsm_get_strong_backward_image(const BddFsm_ptr self,
 }
 
 
-// fo
-BddStatesInputs BddFsm_get_strong_pre_image(const BddFsm_ptr self,
-                                                 BddStates states, 
-                                                 BddVarSet_ptr controllable,
-                                                 BddVarSet_ptr notcontrollable,
-                                                 BddVarSet_ptr pnfvars)
+// for all notcontrollable, exist controllable, exist pnf
+BddStatesInputs BddFsm_get_strong_pre_image_fa_ncontr_ex_contr_ex_pnf(const BddFsm_ptr self,
+                                                 BddStates states)
 {
 
   bdd_ptr result, trans, imply, ex_pnf, ex_contr, tmp;
@@ -853,10 +860,6 @@ BddStatesInputs BddFsm_get_strong_pre_image(const BddFsm_ptr self,
   result = bdd_forall(self->dd, ex_contr, notcontrollable);
   bdd_free(self->dd, ex_contr);
 
-  //bdd_forsome() second argument is a cube
-  //bdd_forall()
-  //bdd_forsome()
-  //
   tmp = (bdd_ptr) bdd_fsm_get_legal_state_input(self);
   bdd_and_accumulate(self->dd, &result, tmp);
   bdd_free(self->dd, tmp);
@@ -864,6 +867,35 @@ BddStatesInputs BddFsm_get_strong_pre_image(const BddFsm_ptr self,
   return BDD_STATES_INPUTS(result);
 }
 
+// exist controllable, for all notcontrollable,  exist pnf
+BddStatesInputs BddFsm_get_strong_pre_image_ex_contr_fa_ncontr_ex_pnf(const BddFsm_ptr self,
+                                                 BddStates states)
+{
+
+  bdd_ptr result, trans, imply, ex_pnf, fa_ncontr, tmp;
+
+  
+  trans = BddFsm_get_monolithic_trans_bdd(self);
+  
+  
+  imply = bdd_imply(self->dd, trans, states);
+  bdd_free(self->dd, trans);
+
+  ex_pnf = bdd_forsome(self->dd, imply, pnfvars);
+  bdd_free(self->dd, imply);
+  
+  fa_ncontr = bdd_forall(self->dd, ex_pnf, notcontrollable);
+  bdd_free(self->dd, ex_pnf);
+
+  result = bdd_forsome(self->dd, fa_ncontr, controllable);
+  bdd_free(self->dd, fa_ncontr);
+
+  tmp = (bdd_ptr) bdd_fsm_get_legal_state_input(self);
+  bdd_and_accumulate(self->dd, &result, tmp);
+  bdd_free(self->dd, tmp);
+
+  return BDD_STATES_INPUTS(result);
+}
 
 
 

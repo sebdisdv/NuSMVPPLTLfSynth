@@ -112,6 +112,12 @@ typedef struct BddFsmMemoize_TAG
 /* Variable declarations                                                     */
 /*---------------------------------------------------------------------------*/
 
+BddVarSet_ptr controllable = NULL;
+BddVarSet_ptr notcontrollable = NULL;
+BddVarSet_ptr pnfvars = NULL;
+
+
+
 /*---------------------------------------------------------------------------*/
 /* Static function prototypes                                                */
 /*---------------------------------------------------------------------------*/
@@ -432,13 +438,33 @@ BddFsm_ptr FsmBuilder_create_bdd_fsm(const FsmBuilder_ptr self,
   printf("PnfVars\n");
   dd_printminterm(dd_manager, pnfv_cube);
 
+
+  // Init global containing vars
+
+  if (controllable == NULL)
+  {
+    controllable = c_cube;
+  }
+
+  if (notcontrollable == NULL)
+  {
+    notcontrollable = u_cube;
+  }
+
+  if (pnfvars == NULL)
+  {
+    pnfvars = pnfv_cube;
+  }
+
   bddfsm = FsmBuilder_create_bdd_fsm_of_vars(self, sexp_fsm, trans_type, enc,
                                              c_cube, u_cube,
                                              nc_cube);
 
+  
+ 
+
   bdd_free(dd_manager, (bdd_ptr)state_vars_cube);
-  // bdd_free(dd_manager, (bdd_ptr)input_vars_cube);
-  // bdd_free(dd_manager, (bdd_ptr)next_state_vars_cube);
+  
   bdd_free(dd_manager, (bdd_ptr)c_cube);
   bdd_free(dd_manager, (bdd_ptr)nc_cube);
   bdd_free(dd_manager, (bdd_ptr)u_cube);
