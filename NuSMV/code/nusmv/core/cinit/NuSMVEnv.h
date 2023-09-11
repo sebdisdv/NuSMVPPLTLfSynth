@@ -114,6 +114,13 @@ typedef struct NuSMVEnv_TAG*  NuSMVEnv_ptr;
 */
 #define ENV_PNFVARS "+D#_pnfvars"
 
+/*!
+  \brief \todo Missing synopsis
+
+  \todo Missing description
+*/
+#define ENV_REALIZABLE "+E#_realizable"
+
 
 
 /*!

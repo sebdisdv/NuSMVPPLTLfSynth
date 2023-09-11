@@ -72,6 +72,7 @@ extern BddVarSet_ptr notcontrollable;
 extern BddVarSet_ptr pnfvars;
 
 
+
 int CommandCheckLtlSpec(NuSMVEnv_ptr env, int argc, char** argv);
 
 int CommandCheckRealizability(NuSMVEnv_ptr env, int argc, char** argv);
@@ -93,24 +94,29 @@ void Ltl_Init(NuSMVEnv_ptr env)
 
 
 boolean Realizable(NuSMVEnv_ptr env, BddFsm_ptr fsm, bdd_ptr property){
-    bdd_ptr initial, check_condition, old_bf, bf, notbf;
+    bdd_ptr initial = Nil, check_condition = Nil, old_bf = Nil, bf = Nil, notbf = Nil;
     boolean realizable = false;
 
     initial = BddFsm_get_init(fsm);
 
-    old_bf = Nil;
     bf = property;
 
+    
    
-    while(node_equal(old_bf, bf, env) && !realizable){
+   
+   while(old_bf != bf && !realizable){
       old_bf = bf;
       bf = BddFsm_get_strong_pre_image_fa_ncontr_ex_contr_ex_pnf(fsm, old_bf);
-      bf = bdd_or(fsm, bf, old_bf);
+      
+      
+      
+      bf = bdd_or(fsm->dd, bf, old_bf); 
 
-      notbf = bdd_not(fsm, bf);
-      check_condition = bdd_and(fsm, notbf, initial);
+      
+      notbf = bdd_not(fsm->dd, bf);
+      check_condition = bdd_and(fsm->dd, notbf, initial);
 
-      if(bdd_isnot_false(fsm, check_condition)){
+      if(bdd_isnot_false(fsm->dd, check_condition)){
         realizable = true;
       }
 
@@ -118,6 +124,11 @@ boolean Realizable(NuSMVEnv_ptr env, BddFsm_ptr fsm, bdd_ptr property){
       bdd_free(fsm->dd, check_condition);
 
     }
+   
+   
+   
+   
+    
 
 
     // Free local variables
@@ -132,19 +143,26 @@ boolean Realizable(NuSMVEnv_ptr env, BddFsm_ptr fsm, bdd_ptr property){
 
 
 int CommandCheckRealizability(NuSMVEnv_ptr env, int argc, char** argv){
-   DDMgr_ptr dd_manager = DD_MGR(NuSMVEnv_get_value(env, ENV_DD_MGR));
+   
    BddFsm_ptr fsm = BDD_FSM(NuSMVEnv_get_value(env, ENV_BDD_FSM));
+   node_ptr toplevel = (node_ptr)NuSMVEnv_get_value(env, ENV_REALIZABLE); 
    bdd_ptr property;
    
-
-   // property= BddEnc_expr_to_bdd(enc, , Nil);
-
-    if (Realizable(env, fsm, property)){
+ 
+  property  = BddEnc_expr_to_bdd(fsm->enc , toplevel, Nil);
+  
+  
+   
+ 
+if (Realizable(env, fsm, property)){
       printf("Realizable\n");
     } else {
       printf("Not realizable\n");
     }
   
+
+
+    
    return 0;
 }
 

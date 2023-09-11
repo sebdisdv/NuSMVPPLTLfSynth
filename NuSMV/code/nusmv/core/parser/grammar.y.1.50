@@ -152,6 +152,7 @@ static node_ptr node2maincontext(node_ptr node);
 %left  <lineno> TOK_CONTROLLABLES
 %left  <lineno> TOK_NOTCONTROLLABLES
 %left  <lineno> TOK_PNFVARS
+%left  <lineno> TOK_REALIZABLE
 
 /* all nonterminals return a parse tree node */
 %type <node> number integer number_word number_frac number_real number_exp subrange subrangetype
@@ -191,6 +192,7 @@ static node_ptr node2maincontext(node_ptr node);
 %type <node> controllables
 %type <node> notcontrollables
 %type <node> pnfvars
+%type <node> realizable
 %type <node> compute_expression
 %type <node> isa
 

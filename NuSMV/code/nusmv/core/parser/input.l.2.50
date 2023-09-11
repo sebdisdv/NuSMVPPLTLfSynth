@@ -37,6 +37,7 @@
 "CONTROLLABLES"         {nusmv_yylval.lineno = nusmv_yylineno; return(TOK_CONTROLLABLES);}
 "NOTCONTROLLABLES"      {nusmv_yylval.lineno = nusmv_yylineno; return(TOK_NOTCONTROLLABLES);}
 "PNFVARS"               {nusmv_yylval.lineno = nusmv_yylineno; return(TOK_PNFVARS);}
+"REALIZABLE"            {nusmv_yylval.lineno = nusmv_yylineno; return(TOK_REALIZABLE);}
 
 "array"                 {nusmv_yylval.lineno = nusmv_yylineno; return(TOK_ARRAY);}
 "bool"                  {nusmv_yylval.lineno = nusmv_yylineno; return(TOK_BOOL);}

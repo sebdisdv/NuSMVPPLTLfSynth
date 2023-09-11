@@ -543,6 +543,7 @@ declaration  : isa
              | controllables
              | notcontrollables
              | pnfvars
+             | realizable
              ;
 
 /*
@@ -760,6 +761,10 @@ notcontrollables : TOK_NOTCONTROLLABLES constants_expression TOK_SEMI
 
 pnfvars  : TOK_PNFVARS constants_expression TOK_SEMI
                 {$$ = new_lined_node(NODEMGR, PNFVARS, $2, Nil, $1);}
+              ;
+
+realizable : TOK_REALIZABLE constants_expression TOK_SEMI
+                {$$ = new_lined_node(NODEMGR, REALIZABLE, $2, Nil, $1);}
               ;
        
 

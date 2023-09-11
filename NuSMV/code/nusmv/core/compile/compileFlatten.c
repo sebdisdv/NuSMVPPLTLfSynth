@@ -3304,6 +3304,23 @@ static void compile_instantiate(const NuSMVEnv_ptr env,
       break;
     }
 
+    case REALIZABLE:
+    {
+       
+      const StreamMgr_ptr streams =
+          STREAM_MGR(NuSMVEnv_get_value(env, ENV_STREAM_MANAGER));
+      const MasterPrinter_ptr wffprint =
+          MASTER_PRINTER(NuSMVEnv_get_value(env, ENV_WFF_PRINTER));
+      StreamMgr_print_error(streams, "To check realizability '");
+      StreamMgr_nprint_error(streams, wffprint, "%N", car(cur_decl));
+      StreamMgr_print_error(streams, "':\n");
+
+      NuSMVEnv_set_value(env, ENV_REALIZABLE, car(cur_decl));
+
+      break;
+    
+    }
+
     case PRED:
     {
       node_ptr pred_name = car(car(cur_decl));

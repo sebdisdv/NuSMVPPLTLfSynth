@@ -70,6 +70,7 @@ enum NUSMV_CORE_SYMBOLS {
   CONTROLLABLES,
   NOTCONTROLLABLES,
   PNFVARS,
+  REALIZABLE,
   
 
   /* To be moved elsewhere */

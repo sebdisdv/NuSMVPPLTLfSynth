@@ -45,6 +45,7 @@ class PLTL2NuSmv():
         self._atomic_vars = self._extract_atomic_varaibles()
         self._controllable = self._get_random_controllable()
         self._notcontrollable = self._get_notcontrollable()
+        self._toplevel = self._get_top_level() 
 
     def _extract_atomic_varaibles(self):
         """
@@ -77,6 +78,12 @@ class PLTL2NuSmv():
         """
         return [ x for x in self._atomic_vars if x not in self._controllable]
 
+    def _get_top_level(self):
+        def_index = self._tableaux.index("DEFINE")
+        for i in range(def_index, len(self._tableaux)):
+            if "top_level_formula_name" in self._tableaux[i]:
+                return self._tableaux[i].split()[0]
+
     def write_nusmv(self):
         with open(self._fname, "w") as file:
             file.write("MODULE main\n")
@@ -106,6 +113,9 @@ class PLTL2NuSmv():
             for i in range(len(self._tableaux_vars) - 1):
                 file.write(f"{self._tableaux_vars[i]},")
             file.write(f"{self._tableaux_vars[-1]};\n")
+
+            file.write("REALIZABLE  ")
+            file.write(f"{self._toplevel};\n")
 
             
 
