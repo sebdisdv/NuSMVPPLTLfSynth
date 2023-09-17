@@ -403,6 +403,7 @@ BddFsm_ptr FsmBuilder_create_bdd_fsm(const FsmBuilder_ptr self,
   ncv = Set_Make(fncv);
   u_cube = BddEnc_get_vars_cube(enc, ncv, VFT_CURRENT);
 
+
   for (node_ptr i = pnfvars_list; i != Nil; i = cdr(i)){
     fpnfv = cons(nodemgr, Compile_FlattenSexp(st, car(i), Nil), fpnfv);
   }
@@ -443,18 +444,21 @@ BddFsm_ptr FsmBuilder_create_bdd_fsm(const FsmBuilder_ptr self,
 
   if (controllable == NULL)
   {
-    controllable = c_cube;
+    controllable = BddEnc_state_var_to_next_state_var(enc, c_cube);
   }
 
   if (notcontrollable == NULL)
   {
-    notcontrollable = u_cube;
+    notcontrollable = BddEnc_state_var_to_next_state_var(enc, u_cube);
   }
 
   if (pnfvars == NULL)
   {
-    pnfvars = pnfv_cube;
+    pnfvars = BddEnc_state_var_to_next_state_var(enc, pnfv_cube);
   }
+  
+  
+
 
   bddfsm = FsmBuilder_create_bdd_fsm_of_vars(self, sexp_fsm, trans_type, enc,
                                              c_cube, u_cube,
@@ -462,6 +466,7 @@ BddFsm_ptr FsmBuilder_create_bdd_fsm(const FsmBuilder_ptr self,
 
   
  
+  
 
   bdd_free(dd_manager, (bdd_ptr)state_vars_cube);
   

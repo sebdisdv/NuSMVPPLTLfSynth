@@ -63,10 +63,15 @@
 
 #include "nusmv/core/enc/operators.h"
 
+//For computing execution time
+
+#include <time.h>
+
 /*---------------------------------------------------------------------------*/
 /* Variable declarations                                                     */
 /*---------------------------------------------------------------------------*/
 extern cmp_struct_ptr cmps;
+
 extern BddVarSet_ptr controllable;
 extern BddVarSet_ptr notcontrollable;
 extern BddVarSet_ptr pnfvars;
@@ -88,82 +93,76 @@ static int UsageCheckLtlSpec(const NuSMVEnv_ptr env);
 
 void Ltl_Init(NuSMVEnv_ptr env)
 {
-  Cmd_CommandAdd(env, "check_ltlspec", CommandCheckLtlSpec, 0, false); // farne un altro per la sintesi senza dover fare un pacchetto nuovo
+  Cmd_CommandAdd(env, "check_ltlspec", CommandCheckLtlSpec, 0, false); 
   Cmd_CommandAdd(env, "check_realizability", CommandCheckRealizability, 0, false);
 }
 
+boolean Realizable(NuSMVEnv_ptr env, BddFsm_ptr fsm, bdd_ptr property)
+{
+  bdd_ptr initial = Nil, check_condition = Nil, old_bf = Nil, bf = Nil, notbf = Nil, tmp = Nil;
+  int step = 0;
+  boolean realizable = false;
 
-boolean Realizable(NuSMVEnv_ptr env, BddFsm_ptr fsm, bdd_ptr property){
-    bdd_ptr initial = Nil, check_condition = Nil, old_bf = Nil, bf = Nil, notbf = Nil;
-    boolean realizable = false;
+  initial = BddFsm_get_init(fsm);
 
-    initial = BddFsm_get_init(fsm);
+  bf = bdd_dup(property);
+  old_bf = bdd_false(fsm->dd);
 
-    bf = property;
+  while (old_bf != bf && !realizable)
+  {
+    printf("Step %d\n", step);
+    step++;
 
-    
-   
-   
-   while(old_bf != bf && !realizable){
-      old_bf = bf;
-      bf = BddFsm_get_strong_pre_image_fa_ncontr_ex_contr_ex_pnf(fsm, old_bf);
-      
-      
-      
-      bf = bdd_or(fsm->dd, bf, old_bf); 
-
-      
-      notbf = bdd_not(fsm->dd, bf);
-      check_condition = bdd_and(fsm->dd, notbf, initial);
-
-      if(bdd_isnot_false(fsm->dd, check_condition)){
-        realizable = true;
-      }
-
-      bdd_free(fsm->dd, notbf);
-      bdd_free(fsm->dd, check_condition);
-
-    }
-   
-   
-   
-   
-    
-
-
-    // Free local variables
     bdd_free(fsm->dd, old_bf);
-    bdd_free(fsm->dd, bf);
-    bdd_free(fsm->dd, initial);
-    
-    
-    return realizable;
+    old_bf = bf;
 
+    bf = BddFsm_get_strong_pre_image_fa_ncontr_ex_contr_ex_pnf(fsm, old_bf); // strong preimage
+
+    bdd_or_accumulate(fsm->dd, &bf, old_bf);
+
+    notbf = bdd_not(fsm->dd, bf);
+    check_condition = bdd_and(fsm->dd, notbf, initial);
+
+    if (bdd_isnot_false(fsm->dd, check_condition))
+    {
+      realizable = true;
+    }
+
+    bdd_free(fsm->dd, notbf);
+    bdd_free(fsm->dd, check_condition);
+  }
+
+  bdd_free(fsm->dd, old_bf);
+  bdd_free(fsm->dd, bf);
+  bdd_free(fsm->dd, initial);
+
+  return realizable;
 }
 
-
 int CommandCheckRealizability(NuSMVEnv_ptr env, int argc, char** argv){
-   
-   BddFsm_ptr fsm = BDD_FSM(NuSMVEnv_get_value(env, ENV_BDD_FSM));
-   node_ptr toplevel = (node_ptr)NuSMVEnv_get_value(env, ENV_REALIZABLE); 
-   bdd_ptr property;
-   
- 
-  property  = BddEnc_expr_to_bdd(fsm->enc , toplevel, Nil);
-  
-  
-   
- 
-if (Realizable(env, fsm, property)){
-      printf("Realizable\n");
-    } else {
-      printf("Not realizable\n");
-    }
-  
 
+  BddFsm_ptr fsm = BDD_FSM(NuSMVEnv_get_value(env, ENV_BDD_FSM));
+  node_ptr toplevel = (node_ptr)NuSMVEnv_get_value(env, ENV_REALIZABLE);
+  bdd_ptr property;
+  time_t start, end;
+  double diff_time;
 
-    
-   return 0;
+  property = BddEnc_expr_to_bdd(fsm->enc, toplevel, Nil);
+
+  time(&start);
+  if (Realizable(env, fsm, property)){
+    printf("Realizable\n");
+  }
+  else{
+    printf("Not realizable\n");
+  }
+  time(&end);
+
+  diff_time = difftime(end, start);
+
+  printf("Execution time %f\n", diff_time);
+
+  return 0;
 }
 
 

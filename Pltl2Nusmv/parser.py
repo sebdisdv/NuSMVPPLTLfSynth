@@ -8,12 +8,12 @@ from pylogics.syntax.base import And, Or, Implies
 from random import sample, seed
 
 
-NUSMV_EXEC_PATH = "NuSMV/build/bin/ltl2smv"
+LTL2SMV_EXEC_PATH = "NuSMV/build/bin/ltl2smv"
 
 def get_tableaux_lines(input_file):
     tableaux = None
     try:
-        tableaux = subprocess.run([NUSMV_EXEC_PATH,"1", input_file], capture_output=True, text=True, check=True)
+        tableaux = subprocess.run([LTL2SMV_EXEC_PATH,"1", input_file], capture_output=True, text=True, check=True)
     except subprocess.SubprocessError:
         return None
     return tableaux.stdout.split("\n")
@@ -117,6 +117,7 @@ class PLTL2NuSmv():
             file.write("REALIZABLE  ")
             file.write(f"{self._toplevel};\n")
 
+        return self._fname
             
 
     def __repr__(self):
