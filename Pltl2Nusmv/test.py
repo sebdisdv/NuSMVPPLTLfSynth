@@ -12,8 +12,11 @@ def create_NuSMV_files():
     for _,_,inputs in os.walk("Pltl2Nusmv/input_test"):
         outputs = []
         for i in inputs:
-            p = PLTL2NuSmv(f"Pltl2Nusmv/input_test/{i}", os.path.basename(i)[:-4])
-            outputs.append((p.formula_str, p.write_nusmv()))
+            try:
+                p = PLTL2NuSmv(f"Pltl2Nusmv/input_test/{i}", os.path.basename(i)[:-4])
+                outputs.append((p.formula_str, p.write_nusmv()))
+            except ValueError:
+                pass
         return outputs
     
 def execute_file(f):
@@ -26,8 +29,10 @@ def execute_file(f):
 def main():
     outputs = create_NuSMV_files()
     for output in outputs:
-        print(output[0], "\n","\n".join(execute_file(output[1]).stdout.split("\n")[15:]))
-        print("/"*30, "\n")
-
+        execution = execute_file(output[1])
+        if execution is not None:
+            print(output[0], "\n","\n".join(execution.stdout.split("\n")[15:]))
+            print("/"*30, "\n")
+        
 if __name__ == "__main__":
     main()
