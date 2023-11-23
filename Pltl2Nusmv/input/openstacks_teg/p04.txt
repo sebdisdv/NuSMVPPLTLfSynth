@@ -1,0 +1,1 @@
+!O(made-p5 & !Y(O(made-p4))) & !O(made-p4 & !Y(O(made-p3))) & !O(made-p3 & !Y(O(made-p2))) & !O(made-p2 & !Y(O(made-p1))) & O(shipped-o1) & O(shipped-o2) & O(shipped-o3) & O(shipped-o4) & O(shipped-o5)

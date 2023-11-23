@@ -1,0 +1,1 @@
+O(served_p2 & served_p3) & O(served_p0 & served_p1 & !(Y(O(served_p2 | served_p3)))) & !(O(boarded_p0 & boarded_p1)) & !(O(boarded_p1 & boarded_p2)) & !(O(boarded_p2 & boarded_p3)) & !(O(boarded_p3 & boarded_p0))
