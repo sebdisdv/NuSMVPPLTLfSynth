@@ -57,10 +57,13 @@ def get_atoms_list(n_atoms: int) -> List[str]:
 
 def create_formula(depth: int, n_atoms: int) -> str:
     atoms = get_atoms_list(n_atoms)
+
     unary, binary = PLTL.get_op_dict().values()
+
     methods_type = [round(x) + 1 for x in [random.random() for _ in range(depth)]]
-    print(methods_type)
+
     methods = []
+
     for i in range(len(methods_type)):
         methods.append(random.choice(unary if methods_type[i] == 1 else binary))
 
@@ -120,7 +123,7 @@ def main(args):
     while n_formulas < args["number"]:
 
         formula, n_atoms = create_formula(args["depth"], args["prop_atom"])
-
+      
         if check_sat(formula):
             generated_formulas.append((formula, n_atoms))
             n_formulas += 1
