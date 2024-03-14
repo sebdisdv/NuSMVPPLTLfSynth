@@ -297,22 +297,58 @@ class LTLf_pattern:
 
 
 mapping = {
-    PLTL_pattern.existence : LTLf_pattern.existence,
-    PLTL_pattern.abscence : LTLf_pattern.abscence,
-    PLTL_pattern.choice : LTLf_pattern.choice,
-    PLTL_pattern.exclusive_choice : LTLf_pattern.exclusive_choice,
-    PLTL_pattern.co_existence : LTLf_pattern.co_existence,
-    PLTL_pattern.responded_existence : LTLf_pattern.responded_existence,
-    PLTL_pattern.response : LTLf_pattern.response,
-    PLTL_pattern.precedence : LTLf_pattern.precedence,
-    PLTL_pattern.chain_response : LTLf_pattern.chain_response,
-    PLTL_pattern.chain_precedence : LTLf_pattern.chain_precedence,
-    PLTL_pattern.chain_succession : LTLf_pattern.chain_succession,
-    PLTL_pattern.not_co_existence : LTLf_pattern.not_co_existence,
-    PLTL_pattern.not_succession : LTLf_pattern.not_succession,
-    PLTL_pattern.not_chain_succession : LTLf_pattern.not_chain_succession
-    
+    PLTL_pattern.existence: LTLf_pattern.existence,
+    PLTL_pattern.abscence: LTLf_pattern.abscence,
+    PLTL_pattern.choice: LTLf_pattern.choice,
+    PLTL_pattern.exclusive_choice: LTLf_pattern.exclusive_choice,
+    PLTL_pattern.co_existence: LTLf_pattern.co_existence,
+    PLTL_pattern.responded_existence: LTLf_pattern.responded_existence,
+    PLTL_pattern.response: LTLf_pattern.response,
+    PLTL_pattern.precedence: LTLf_pattern.precedence,
+    PLTL_pattern.chain_response: LTLf_pattern.chain_response,
+    PLTL_pattern.chain_precedence: LTLf_pattern.chain_precedence,
+    PLTL_pattern.chain_succession: LTLf_pattern.chain_succession,
+    PLTL_pattern.not_co_existence: LTLf_pattern.not_co_existence,
+    PLTL_pattern.not_succession: LTLf_pattern.not_succession,
+    PLTL_pattern.not_chain_succession: LTLf_pattern.not_chain_succession,
 }
+
+
+from pylogics.parsers import parse_pltl
+from pylogics.syntax.pltl import Atomic, Since
+from pylogics.syntax.base import (
+    And,
+    Or,
+    Implies,
+    Equivalence,
+    TrueFormula,
+    FalseFormula,
+)
+
+
+def extract_atomic_varaibles(formula):
+    """
+    extract all atomic variables from the input formula
+    """
+    operand_classes = [Since, Or, And, Implies, Equivalence]
+    queue = [parse_pltl(formula)]
+    names = set()
+    while len(queue) != 0:
+        curr_node = queue.pop()
+        curr_node_type = type(curr_node)
+        if curr_node_type == Atomic:
+            names.add(curr_node.name)
+        elif curr_node_type in operand_classes:
+            for op in curr_node.operands:
+                queue.append(op)
+        elif curr_node_type == FalseFormula:  # TODO check this part
+            names.add("False")
+        elif curr_node_type == TrueFormula:
+            names.add("True")
+        else:
+            # Not, Historically, Once case
+            queue.append(curr_node.argument)
+    return names
 
 
 def get_atoms_list(n_atoms: int) -> List[str]:
@@ -325,21 +361,25 @@ def create_formula(depth: int, n_atoms: int) -> str:
     unary_past, binary_past = PLTL_pattern.get_op_dict().values()
     unary_future, binary_future = LTLf_pattern.get_op_dict().values()
 
-    methods_type = [2 if x > 0.2 else 1 for x in [random.random() for _ in range(depth)]]
+    methods_type = [
+        2 if x > 0.2 else 1 for x in [random.random() for _ in range(depth)]
+    ]
 
     methods_past = []
     methods_future = []
 
     for i in range(len(methods_type)):
-        methods_past.append(random.choice(unary_past if methods_type[i] == 1 else binary_past))
+        methods_past.append(
+            random.choice(unary_past if methods_type[i] == 1 else binary_past)
+        )
         methods_future.append(mapping[methods_past[i]])
-        
+
     # from pprint import pprint as print
-    # 
+    #
     # print(methods_type)
     # print(methods_past)
     # print(methods_future)
-    
+
     atoms_used = set()
 
     for i in range(depth):
@@ -368,7 +408,7 @@ def create_formula(depth: int, n_atoms: int) -> str:
                     formula_future = methods_future[i](p, formula_future)
                 else:
                     formula_past = methods_past[i](formula_past, p)
-                    formula_future = methods_future[i](formula_future, p )
+                    formula_future = methods_future[i](formula_future, p)
 
                 atoms_used.add(p)
 
@@ -382,7 +422,11 @@ def check_sat(formula):
 def write_to_json(formulas, dir, filename):
     res = {}
     for i, (formula_past, formula_future, atoms) in enumerate(formulas):
-        res[f"f{i}"] = {"formula_past": formula_past, "formula_future": formula_future,"n_atoms": atoms}
+        res[f"f{i}"] = {
+            "formula_past": formula_past,
+            "formula_future": formula_future,
+            "n_atoms": atoms,
+        }
 
     with open(os.path.join(dir, f"{filename}.json"), "w") as ofile:
         ofile.write(json.dumps(res))
@@ -397,14 +441,19 @@ def main(args):
 
     # set seed
     random.seed(args["seed"])
+    
+    const = set(["True", "False"])
 
     while n_formulas < args["number"]:
 
-        formula_past, formula_future, n_atoms = create_formula(args["depth"], args["prop_atom"])
-
-        if check_sat(formula_past):
-            generated_formulas.append((formula_past, formula_future, n_atoms))
-            n_formulas += 1
+        formula_past, formula_future, n_atoms = create_formula(
+            args["depth"], args["prop_atom"]
+        )
+    
+        if check_sat(formula_past):        
+            if not bool(const & extract_atomic_varaibles(formula_past)):
+                generated_formulas.append((formula_past, formula_future, n_atoms))
+                n_formulas += 1
 
     write_to_json(generated_formulas, args["directory"], args["filename"])
 
@@ -414,8 +463,8 @@ if __name__ == "__main__":
     args.add_argument(
         "-s",
         "--seed",
-        default=None,
-        required=True,
+        default=23,
+        required=False,
         type=int,
         help="The SEED for the random number generator",
     )
