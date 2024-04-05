@@ -846,18 +846,28 @@ BddStatesInputs BddFsm_get_strong_pre_image_fa_ncontr_ex_contr_ex_pnf(const BddF
 
   nstates = BddEnc_state_var_to_next_state_var(self->enc, states);
   
+  
+
   //dd_printminterm(self->dd, pnfvars);
   //dd_printminterm(self->dd, notcontrollable);
   //dd_printminterm(self->dd, controllable);
+  //pnfvars = BddEnc_state_var_to_next_state_var(self->enc, pnfvars);
+  //controllable = BddEnc_state_var_to_next_state_var(self->enc, controllable);
+  //notcontrollable = BddEnc_state_var_to_next_state_var(self->enc, notcontrollable);
+
 
   trans = BddFsm_get_monolithic_trans_bdd(self);
+  //trans = BddTrans_get_monolithic_bdd(self->trans);
   
   
   imply = bdd_imply(self->dd, trans, nstates);
+  
   bdd_free(self->dd, trans);
 
   //printf("pnfvars\n");
+  //ex_pnf = bdd_forsome(self->dd, imply, pnfvars);
   ex_pnf = bdd_forsome(self->dd, imply, pnfvars);
+  
   bdd_free(self->dd, imply);
   
   //printf("controllable\n");
@@ -874,6 +884,56 @@ BddStatesInputs BddFsm_get_strong_pre_image_fa_ncontr_ex_contr_ex_pnf(const BddF
   return BDD_STATES_INPUTS(result);
 }
 
+BddStatesInputs BddFsm_get_strong_pre_image_fa_ncontr_ex_contr_ex_pnf_OPTIM(const BddFsm_ptr self,
+                                                 BddStates states)
+{
+
+  bdd_ptr result, not_contr, trans, ntrans, ex_pnf_trans, ex_contr_trans, and, ex_pnf_nstates, ex_contr_nstates, nstates, neg_nstates, tmp;
+
+  nstates = BddEnc_state_var_to_next_state_var(self->enc, states);
+
+  trans = BddFsm_get_monolithic_trans_bdd(self);
+  
+  ntrans = bdd_not(self->dd, trans);
+  bdd_free(self->dd, trans);
+
+  ex_pnf_trans = bdd_forsome(self->dd, ntrans, pnfvars);
+  bdd_free(self->dd, ntrans);
+
+  ex_contr_trans = bdd_forsome(self->dd, ex_pnf_trans, controllable);
+  bdd_free(self->dd, ex_pnf_trans);
+
+  ntrans = bdd_not(self->dd, ex_contr_trans);
+  bdd_free(self->dd, ex_contr_trans);
+
+  ex_pnf_nstates = bdd_forsome(self->dd, nstates, pnfvars);
+  bdd_free(self->dd, nstates);
+
+  ex_contr_nstates = bdd_forsome(self->dd, ex_pnf_nstates, controllable);
+  bdd_free(self->dd, ex_pnf_nstates);
+
+
+  neg_nstates = bdd_not(self->dd, ex_contr_nstates);
+  bdd_free(self->dd, ex_contr_nstates);
+
+  and = bdd_and(self->dd, ntrans, neg_nstates);
+  bdd_free(self->dd, ntrans);
+  bdd_free(self->dd, neg_nstates);
+
+  not_contr = bdd_forsome(self->dd, and, notcontrollable);
+  bdd_free(self->dd, and);
+
+  result = bdd_not(self->dd, not_contr);
+  bdd_free(self->dd, not_contr);
+
+
+  tmp = (bdd_ptr) bdd_fsm_get_legal_state_input(self);
+  bdd_and_accumulate(self->dd, &result, tmp);
+  bdd_free(self->dd, tmp);
+
+  return BDD_STATES_INPUTS(result);
+}
+
 // exist controllable, for all notcontrollable,  exist pnf
 BddStatesInputs BddFsm_get_strong_pre_image_ex_contr_fa_ncontr_ex_pnf(const BddFsm_ptr self,
                                                  BddStates states)
@@ -881,7 +941,7 @@ BddStatesInputs BddFsm_get_strong_pre_image_ex_contr_fa_ncontr_ex_pnf(const BddF
 
   bdd_ptr result, trans, imply, ex_pnf, fa_ncontr, tmp, nstates;
 
-  nstates = BddEnc_state_var_to_next_state_var(self->dd, states);
+  nstates = BddEnc_state_var_to_next_state_var(self->enc, states);
 
   
   trans = BddFsm_get_monolithic_trans_bdd(self);

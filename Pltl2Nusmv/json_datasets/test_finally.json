@@ -1,0 +1,348 @@
+{
+    "f0": {
+        "formula_past": "!O(H(Y(p8) -> ((!(O(p16) -> !O(p11)) S (p4)) | H (!(O(p16) -> !O(p11))))) & !(p8))",
+        "formula_future": "F(!F(G((p8) -> X(G((F(p16) -> !F(p11)) -> F(p4))))))",
+        "atoms": [
+            "p16",
+            "p4",
+            "p8",
+            "p11"
+        ],
+        "controllable": [
+            "p16",
+            "p4"
+        ],
+        "uncontrollable": [
+            "p8",
+            "p11"
+        ]
+    },
+    "f1": {
+        "formula_past": "(O !O(H((p11) -> Y(H((p13) -> !Y(p16))))))",
+        "formula_future": "F((F !F(G(X(p11) -> (G((p16) -> !X(p13)))) & !(p11))))",
+        "atoms": [
+            "p13",
+            "p16",
+            "p11"
+        ],
+        "controllable": [
+            "p13"
+        ],
+        "uncontrollable": [
+            "p16",
+            "p11"
+        ]
+    },
+    "f2": {
+        "formula_past": "!O(O(!O(O(p18) -> O(p9))) -> !O(p10))",
+        "formula_future": "F(!F(F(!F(F(p18) -> F(p9))) -> !F(p10)))",
+        "atoms": [
+            "p10",
+            "p18",
+            "p9"
+        ],
+        "controllable": [
+            "p10"
+        ],
+        "uncontrollable": [
+            "p18",
+            "p9"
+        ]
+    },
+    "f3": {
+        "formula_past": "H(!(p3)) <-> H(!(H(!(p16)) <-> H(!((O H((p10) -> !O(p17)))))))",
+        "formula_future": "F(F(p3) <-> F(F(p16) <-> F((F G((p17) -> !F(p10))))))",
+        "atoms": [
+            "p10",
+            "p3",
+            "p17",
+            "p16"
+        ],
+        "controllable": [
+            "p10",
+            "p3"
+        ],
+        "uncontrollable": [
+            "p17",
+            "p16"
+        ]
+    },
+    "f4": {
+        "formula_past": "H(((O(H((p9) -> O(O(p9) -> !O(p17)))) | O(p14)) &  !(O(H((p9) -> O(O(p9) -> !O(p17)))) & O(p14))) -> O(p8))",
+        "formula_future": "F((!((F((!(p9) U (F(p9) -> !F(p17))) | G(!(p9))) | F(p14)) &  !(F((!(p9) U (F(p9) -> !F(p17))) | G(!(p9))) & F(p14))) U (p8)) | G(!((F((!(p9) U (F(p9) -> !F(p17))) | G(!(p9))) | F(p14)) &  !(F((!(p9) U (F(p9) -> !F(p17))) | G(!(p9))) & F(p14)))))",
+        "atoms": [
+            "p17",
+            "p14",
+            "p8",
+            "p9"
+        ],
+        "controllable": [
+            "p17",
+            "p14"
+        ],
+        "uncontrollable": [
+            "p8",
+            "p9"
+        ]
+    },
+    "f5": {
+        "formula_past": "O(p1) -> !O(H(((O H((p12) -> O(p3)))) -> !Y(p5)))",
+        "formula_future": "F(F(p1) -> !F(G((p5) -> !X((F (!(p12) U (p3)) | G(!(p12)))))))",
+        "atoms": [
+            "p1",
+            "p3",
+            "p5",
+            "p12"
+        ],
+        "controllable": [
+            "p1",
+            "p3"
+        ],
+        "uncontrollable": [
+            "p5",
+            "p12"
+        ]
+    },
+    "f6": {
+        "formula_past": "H(((H(Y((O O(p2) -> O(p11))) -> (p0)) & !((O O(p2) -> O(p11)))) & H(Y(!((O O(p2) -> O(p11)))) -> !(p0))) -> Y(p12))",
+        "formula_future": "F(G(X(G(((F F(p2) -> F(p11))) <-> X(p0))) -> (p12)) & !(G(((F F(p2) -> F(p11))) <-> X(p0))))",
+        "atoms": [
+            "p2",
+            "p12",
+            "p11",
+            "p0"
+        ],
+        "controllable": [
+            "p2",
+            "p12"
+        ],
+        "uncontrollable": [
+            "p11",
+            "p0"
+        ]
+    },
+    "f7": {
+        "formula_past": "(O(O((!(!O(p3)) S (p17)) | H (!(!O(p3)))) -> O(p5)) | O(p17)) &  !(O(O((!(!O(p3)) S (p17)) | H (!(!O(p3)))) -> O(p5)) & O(p17))",
+        "formula_future": "F((F(F(G((!F(p3)) -> F(p17))) -> F(p5)) | F(p17)) &  !(F(F(G((!F(p3)) -> F(p17))) -> F(p5)) & F(p17)))",
+        "atoms": [
+            "p17",
+            "p3",
+            "p5"
+        ],
+        "controllable": [
+            "p17"
+        ],
+        "uncontrollable": [
+            "p3",
+            "p5"
+        ]
+    },
+    "f8": {
+        "formula_past": "H(!(p13)) <-> H(!(H(Y(H((p2) -> !O(H((p13) -> O(p19))))) -> (p7)) & !(H((p2) -> !O(H((p13) -> O(p19)))))))",
+        "formula_future": "F(F(p13) <-> F(G((G(((!(p13) U (p19)) | G(!(p13))) -> !F(p2))) -> X(p7))))",
+        "atoms": [
+            "p2",
+            "p13",
+            "p19",
+            "p7"
+        ],
+        "controllable": [
+            "p2",
+            "p13"
+        ],
+        "uncontrollable": [
+            "p19",
+            "p7"
+        ]
+    },
+    "f9": {
+        "formula_past": "H(!(p17)) <-> H(!(H((O(p13) | O((O(p10) | O(p17)) &  !(O(p10) & O(p17)))) -> !O(p2))))",
+        "formula_future": "F(F(p17) <-> F(G((p2) -> !F(F(p13) | F((F(p10) | F(p17)) &  !(F(p10) & F(p17)))))))",
+        "atoms": [
+            "p17",
+            "p10",
+            "p2",
+            "p13"
+        ],
+        "controllable": [
+            "p17",
+            "p10"
+        ],
+        "uncontrollable": [
+            "p2",
+            "p13"
+        ]
+    },
+    "f10": {
+        "formula_past": "H(Y(H((O(p12) | O((!(p0) S (p4)) | H (!(p0)))) -> O(p0))) -> (p14)) & !(H((O(p12) | O((!(p0) S (p4)) | H (!(p0)))) -> O(p0)))",
+        "formula_future": "F(G(((!(F(p12) | F(G((p0) -> F(p4)))) U (p0)) | G(!(F(p12) | F(G((p0) -> F(p4)))))) -> X(p14)))",
+        "atoms": [
+            "p0",
+            "p14",
+            "p12",
+            "p4"
+        ],
+        "controllable": [
+            "p0",
+            "p14"
+        ],
+        "uncontrollable": [
+            "p12",
+            "p4"
+        ]
+    },
+    "f11": {
+        "formula_past": "H(!((H(Y(p2) -> (H(((H(Y(p16) -> (p17)) & !(p16)) & H(Y(!(p16)) -> !(p17))) -> !Y(p9)))) & !(p2)) & H(Y(!(p2)) -> !(H(((H(Y(p16) -> (p17)) & !(p16)) & H(Y(!(p16)) -> !(p17))) -> !Y(p9)))))) <-> H(!(p1))",
+        "formula_future": "F(F(G((p2) <-> X(G((p9) -> !X(G((p16) <-> X(p17))))))) <-> F(p1))",
+        "atoms": [
+            "p17",
+            "p16",
+            "p1",
+            "p9",
+            "p2"
+        ],
+        "controllable": [
+            "p17",
+            "p16"
+        ],
+        "uncontrollable": [
+            "p1",
+            "p9",
+            "p2"
+        ]
+    },
+    "f12": {
+        "formula_past": "H(Y(p1) -> (H((H((p8) -> !O((!(p11) S (p9)) | H (!(p11))))) -> O(p10)))) & !(p1)",
+        "formula_future": "F(G((p1) -> X((!(G((G((p11) -> F(p9))) -> !F(p8))) U (p10)) | G(!(G((G((p11) -> F(p9))) -> !F(p8)))))))",
+        "atoms": [
+            "p8",
+            "p11",
+            "p1",
+            "p9",
+            "p10"
+        ],
+        "controllable": [
+            "p8",
+            "p11"
+        ],
+        "uncontrollable": [
+            "p1",
+            "p9",
+            "p10"
+        ]
+    },
+    "f13": {
+        "formula_past": "H(Y(p3) -> ((O(H((p4) -> !Y((!(p6) S (p8)) | H (!(p6))))) | O(p3)) &  !(O(H((p4) -> !Y((!(p6) S (p8)) | H (!(p6))))) & O(p3)))) & !(p3)",
+        "formula_future": "F(G((p3) -> X((F(G((G((p6) -> F(p8))) -> !X(p4))) | F(p3)) &  !(F(G((G((p6) -> F(p8))) -> !X(p4))) & F(p3)))))",
+        "atoms": [
+            "p4",
+            "p3",
+            "p8",
+            "p6"
+        ],
+        "controllable": [
+            "p4",
+            "p3"
+        ],
+        "uncontrollable": [
+            "p8",
+            "p6"
+        ]
+    },
+    "f14": {
+        "formula_past": "O(p8) | O(!O((O (O(p13) | O(p2)) &  !(O(p13) & O(p2)))))",
+        "formula_future": "F(F(p8) | F(!F((F (F(p13) | F(p2)) &  !(F(p13) & F(p2))))))",
+        "atoms": [
+            "p13",
+            "p2",
+            "p8"
+        ],
+        "controllable": [
+            "p13"
+        ],
+        "uncontrollable": [
+            "p2",
+            "p8"
+        ]
+    },
+    "f15": {
+        "formula_past": "!O(O(p19) -> !O(H(Y((H(Y(p9) -> (p2)) & !(p9)) & H(Y(!(p9)) -> !(p2))) -> (p19)) & !((H(Y(p9) -> (p2)) & !(p9)) & H(Y(!(p9)) -> !(p2)))))",
+        "formula_future": "F(!F(F(p19) -> !F(G((G((p9) <-> X(p2))) -> X(p19)))))",
+        "atoms": [
+            "p9",
+            "p19",
+            "p2"
+        ],
+        "controllable": [
+            "p9"
+        ],
+        "uncontrollable": [
+            "p19",
+            "p2"
+        ]
+    },
+    "f16": {
+        "formula_past": "!O((O H((p18) -> !O(O(p15) -> !O(p9)))))",
+        "formula_future": "F(!F((F G((F(p15) -> !F(p9)) -> !F(p18)))))",
+        "atoms": [
+            "p15",
+            "p18",
+            "p9"
+        ],
+        "controllable": [
+            "p15"
+        ],
+        "uncontrollable": [
+            "p18",
+            "p9"
+        ]
+    },
+    "f17": {
+        "formula_past": "(O H(((O (O p5))) -> O(p6)))",
+        "formula_future": "F((F (!((F (F p5))) U (p6)) | G(!((F (F p5))))))",
+        "atoms": [
+            "p6",
+            "p5"
+        ],
+        "controllable": [
+            "p6"
+        ],
+        "uncontrollable": [
+            "p5"
+        ]
+    },
+    "f18": {
+        "formula_past": "(H(Y(H((H((H(Y(p7) -> (p17)) & !(p7)) -> !O(p9))) -> O(p4))) -> (p9)) & !(H((H((H(Y(p7) -> (p17)) & !(p7)) -> !O(p9))) -> O(p4)))) & H(Y(!(H((H((H(Y(p7) -> (p17)) & !(p7)) -> !O(p9))) -> O(p4)))) -> !(p9))",
+        "formula_future": "F(G(((!(G((p9) -> !F(G((p7) -> X(p17))))) U (p4)) | G(!(G((p9) -> !F(G((p7) -> X(p17))))))) <-> X(p9)))",
+        "atoms": [
+            "p4",
+            "p9",
+            "p7",
+            "p17"
+        ],
+        "controllable": [
+            "p4",
+            "p9"
+        ],
+        "uncontrollable": [
+            "p7",
+            "p17"
+        ]
+    },
+    "f19": {
+        "formula_past": "H(Y(H((O(p1) -> O((O p13))) -> O(p13))) -> (p5)) & !(H((O(p1) -> O((O p13))) -> O(p13)))",
+        "formula_future": "F(G(((!(F(p1) -> F((F p13))) U (p13)) | G(!(F(p1) -> F((F p13))))) -> X(p5)))",
+        "atoms": [
+            "p5",
+            "p1",
+            "p13"
+        ],
+        "controllable": [
+            "p5"
+        ],
+        "uncontrollable": [
+            "p1",
+            "p13"
+        ]
+    }
+}

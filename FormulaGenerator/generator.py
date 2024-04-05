@@ -154,7 +154,7 @@ class PLTL_pattern:
 
     @staticmethod
     def exclusive_choice(p1: str, p2: str) -> str:
-        return f"(O({p1}) | O({p2})) &  !(O({p1}) | O({p2}))"
+        return f"(O({p1}) | O({p2})) &  !(O({p1}) & O({p2}))"
 
     @staticmethod
     def co_existence(p1: str, p2: str) -> str:
@@ -166,7 +166,7 @@ class PLTL_pattern:
 
     @staticmethod
     def response(p1: str, p2: str) -> str:
-        return f"(!({p1}) S ({p2})) | H (! ({p1}))"
+        return f"(!({p1}) S ({p2})) | H (!({p1}))"
 
     @staticmethod
     def precedence(p1: str, p2: str) -> str:
@@ -221,7 +221,7 @@ class LTLf_pattern:
 
     @staticmethod
     def existence(p: str) -> str:
-        return f"(O {p})"
+        return f"(F {p})"
 
     @staticmethod
     def abscence(p: str) -> str:
@@ -233,7 +233,7 @@ class LTLf_pattern:
 
     @staticmethod
     def exclusive_choice(p1: str, p2: str) -> str:
-        return f"(F({p1}) | F({p2})) &  !(F({p1}) | F({p2}))"
+        return f"(F({p1}) | F({p2})) &  !(F({p1}) & F({p2}))"
 
     @staticmethod
     def co_existence(p1: str, p2: str) -> str:
@@ -359,7 +359,7 @@ def create_formula(depth: int, n_atoms: int) -> str:
     atoms = get_atoms_list(n_atoms)
 
     unary_past, binary_past = PLTL_pattern.get_op_dict().values()
-    unary_future, binary_future = LTLf_pattern.get_op_dict().values()
+    # unary_future, binary_future = LTLf_pattern.get_op_dict().values()
 
     methods_type = [
         2 if x > 0.2 else 1 for x in [random.random() for _ in range(depth)]
@@ -373,12 +373,16 @@ def create_formula(depth: int, n_atoms: int) -> str:
             random.choice(unary_past if methods_type[i] == 1 else binary_past)
         )
         methods_future.append(mapping[methods_past[i]])
+        print(methods_past[i], methods_future[i])
 
     # from pprint import pprint as print
     #
     # print(methods_type)
     # print(methods_past)
     # print(methods_future)
+    # methods_type = [2 for _ in range(depth)]
+    # methods_past = [PLTL_pattern.response for _ in range(depth)]
+    # methods_future = [LTLf_pattern.response for _ in range(depth)]
 
     atoms_used = set()
 
@@ -412,26 +416,36 @@ def create_formula(depth: int, n_atoms: int) -> str:
 
                 atoms_used.add(p)
 
-    return formula_past, formula_future, len(atoms_used)
+    return formula_past, formula_future, atoms_used
+    #return formula_past, f"F({formula_future})", atoms_used
 
 
 def check_sat(formula):
     return os.popen(f"black solve -f '{formula}'").read()[:-1] == "SAT"
 
 
-def write_to_json(formulas, dir, filename):
+def write_to_json(formulas, filename):
     res = {}
     for i, (formula_past, formula_future, atoms) in enumerate(formulas):
+        atoms = list(atoms)
+        random.shuffle(atoms)
+        contr, uncontr = atoms[: int(len(atoms) / 2)], atoms[int(len(atoms) / 2):]
         res[f"f{i}"] = {
             "formula_past": formula_past,
-            "formula_future": formula_future,
-            "n_atoms": atoms,
+            "formula_future": f"{formula_future}",
+            "atoms": atoms,
+            "controllable" : contr,
+            "uncontrollable" : uncontr
         }
 
-    with open(os.path.join(dir, f"{filename}.json"), "w") as ofile:
+    with open(os.path.join(os.getcwd(), "Pltl2Nusmv", "json_datasets", f"{filename}.json"), "w") as ofile:
         ofile.write(json.dumps(res))
-        print(f"File {filename}.json saved in {dir}")
-
+        print(f"File {filename}.json saved in {os.path.join(os.getcwd(), 'Pltl2Nusmv', 'json_datasets')}")
+    nike = "/home/sebdis/PPLTL/Nike/nike/build/apps/nike-app/datasets"
+    with open(os.path.join(nike, f"{filename}.json"), "w") as ofile:
+        ofile.write(json.dumps(res))
+        print(f'File {filename}.json saved in {os.path.join(nike, f"{filename}.json")}')
+    #TODO save inside dataset folder of nike
 
 def main(args):
 
@@ -450,15 +464,16 @@ def main(args):
             args["depth"], args["prop_atom"]
         )
     
-        if check_sat(formula_past):        
+        if check_sat(formula_past) and check_sat(formula_future):        
             if not bool(const & extract_atomic_varaibles(formula_past)):
                 generated_formulas.append((formula_past, formula_future, n_atoms))
                 n_formulas += 1
 
-    write_to_json(generated_formulas, args["directory"], args["filename"])
+    write_to_json(generated_formulas, args["filename"])
 
 
 if __name__ == "__main__":
+        
     args = ArgumentParser()
     args.add_argument(
         "-s",
@@ -492,14 +507,7 @@ if __name__ == "__main__":
         type=int,
         help="The maximum number of prop atom of formulas",
     )
-    args.add_argument(
-        "-dir",
-        "--directory",
-        default=None,
-        required=True,
-        type=str,
-        help="The directory in which to put the creted json file",
-    )
+   
     args.add_argument(
         "-f",
         "--filename",

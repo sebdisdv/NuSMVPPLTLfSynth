@@ -106,6 +106,7 @@ boolean Realizable(NuSMVEnv_ptr env, BddFsm_ptr fsm, bdd_ptr property)
   initial = BddFsm_get_init(fsm);
 
   bf = bdd_dup(property);
+
   old_bf = bdd_false(fsm->dd);
 
   while (old_bf != bf && !realizable)
@@ -114,16 +115,20 @@ boolean Realizable(NuSMVEnv_ptr env, BddFsm_ptr fsm, bdd_ptr property)
     step++;
 
     bdd_free(fsm->dd, old_bf);
-    old_bf = bf;
+    old_bf = bdd_dup(bf);
+    
 
+    
     bf = BddFsm_get_strong_pre_image_fa_ncontr_ex_contr_ex_pnf(fsm, old_bf); // strong preimage
-
+    //bf = BddFsm_get_strong_pre_image_ex_contr_fa_ncontr_ex_pnf(fsm, old_bf);
     bdd_or_accumulate(fsm->dd, &bf, old_bf);
 
     notbf = bdd_not(fsm->dd, bf);
     check_condition = bdd_and(fsm->dd, notbf, initial);
-
-    if (bdd_isnot_false(fsm->dd, check_condition))
+    //check_condition = bdd_and(fsm->dd, bf, initial);
+    //if(bdd_is_false(fsm->dd, check_condition))
+    //if(check_condition == initial)
+    if (bdd_is_false(fsm->dd, check_condition))
     {
       realizable = true;
     }
@@ -148,13 +153,14 @@ int CommandCheckRealizability(NuSMVEnv_ptr env, int argc, char** argv){
   double diff_time;
 
   property = BddEnc_expr_to_bdd(fsm->enc, toplevel, Nil);
-
+   
+ 
   time(&start);
   if (Realizable(env, fsm, property)){
-    printf("Realizable\n");
+    printf("realizable\n");
   }
   else{
-    printf("Not realizable\n");
+    printf("unrealizable\n");
   }
   time(&end);
 
