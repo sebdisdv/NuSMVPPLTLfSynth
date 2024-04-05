@@ -441,11 +441,14 @@ def write_to_json(formulas, filename):
     with open(os.path.join(os.getcwd(), "Pltl2Nusmv", "json_datasets", f"{filename}.json"), "w") as ofile:
         ofile.write(json.dumps(res))
         print(f"File {filename}.json saved in {os.path.join(os.getcwd(), 'Pltl2Nusmv', 'json_datasets')}")
+    
+    # For now here we use the global path to this directory inside the Nike repository
+    # must use the global path
     nike = "/home/sebdis/PPLTL/Nike/nike/build/apps/nike-app/datasets"
+    
     with open(os.path.join(nike, f"{filename}.json"), "w") as ofile:
         ofile.write(json.dumps(res))
         print(f'File {filename}.json saved in {os.path.join(nike, f"{filename}.json")}')
-    #TODO save inside dataset folder of nike
 
 def main(args):
 
