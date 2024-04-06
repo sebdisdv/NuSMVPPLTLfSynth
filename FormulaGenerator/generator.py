@@ -355,8 +355,9 @@ def get_atoms_list(n_atoms: int) -> List[str]:
     return [f"p{i}" for i in range(n_atoms)]
 
 
-def create_formula(depth: int, n_atoms: int) -> str:
-    atoms = get_atoms_list(n_atoms)
+def create_formula(depth: int) -> str:
+    
+    atoms = get_atoms_list(depth*2)
 
     unary_past, binary_past = PLTL_pattern.get_op_dict().values()
     # unary_future, binary_future = LTLf_pattern.get_op_dict().values()
@@ -416,8 +417,8 @@ def create_formula(depth: int, n_atoms: int) -> str:
 
                 atoms_used.add(p)
 
-    return formula_past, formula_future, atoms_used
-    #return formula_past, f"F({formula_future})", atoms_used
+    return formula_past, f"F({formula_future})", atoms_used
+    # return formula_past, formula_future, atoms_used
 
 
 def check_sat(formula):
@@ -432,7 +433,7 @@ def write_to_json(formulas, filename):
         contr, uncontr = atoms[: int(len(atoms) / 2)], atoms[int(len(atoms) / 2):]
         res[f"f{i}"] = {
             "formula_past": formula_past,
-            "formula_future": f"{formula_future}",
+            "formula_future": formula_future,
             "atoms": atoms,
             "controllable" : contr,
             "uncontrollable" : uncontr
@@ -441,14 +442,7 @@ def write_to_json(formulas, filename):
     with open(os.path.join(os.getcwd(), "Pltl2Nusmv", "json_datasets", f"{filename}.json"), "w") as ofile:
         ofile.write(json.dumps(res))
         print(f"File {filename}.json saved in {os.path.join(os.getcwd(), 'Pltl2Nusmv', 'json_datasets')}")
-    
-    # For now here we use the global path to this directory inside the Nike repository
-    # must use the global path
-    nike = "/home/sebdis/PPLTL/Nike/nike/build/apps/nike-app/datasets"
-    
-    with open(os.path.join(nike, f"{filename}.json"), "w") as ofile:
-        ofile.write(json.dumps(res))
-        print(f'File {filename}.json saved in {os.path.join(nike, f"{filename}.json")}')
+   
 
 def main(args):
 
@@ -464,7 +458,7 @@ def main(args):
     while n_formulas < args["number"]:
 
         formula_past, formula_future, n_atoms = create_formula(
-            args["depth"], args["prop_atom"]
+            args["depth"]
         )
     
         if check_sat(formula_past) and check_sat(formula_future):        
@@ -502,15 +496,7 @@ if __name__ == "__main__":
         type=int,
         help="The temporal depth of the generated formulas",
     )
-    args.add_argument(
-        "-pa",
-        "--prop_atom",
-        default=None,
-        required=True,
-        type=int,
-        help="The maximum number of prop atom of formulas",
-    )
-   
+    
     args.add_argument(
         "-f",
         "--filename",
