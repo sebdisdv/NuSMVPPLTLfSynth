@@ -26,12 +26,12 @@ optional arguments:
 
 NIKE
 
-~/PPLTL/Nike/nike/build/apps/nike-app$ python3 test_dataset.py -h
-usage: test_dataset.py [-h] -d DATASET -o OUTPUT
+~/PPLTL/ltlfuc$ python3 Pltl2Nusmv/test_dataset_nike.py -h
+usage: test_dataset_nike.py [-h] -i INPUT -o OUTPUT
 
 optional arguments:
   -h, --help            show this help message and exit
-  -d DATASET, --dataset DATASET
+  -i INPUT, --input INPUT
                         json dataset containing the formulas
   -o OUTPUT, --output OUTPUT
                         name of the output file
