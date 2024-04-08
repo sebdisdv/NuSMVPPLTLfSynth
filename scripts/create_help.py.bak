@@ -95,7 +95,7 @@ def find_all_commands(search_paths, commands_list):
                         #  print void because it print on cmdHelp.c
                         #  file so in case of exception it print a
                         #  wrong message on cmdHelp.c
-                        print('')
+                        print ''
 
                     else:
                         commands_list_file = find_all_commands_in_a_text(text)
@@ -116,7 +116,7 @@ def print_commands_on_txt_files(path_trunk, commands_list):
             F = open(os.path.abspath(os.path.join(help_dir, file_name)), 'w')
         except IOError:
             ## print 'Error: impossible to open the file' + file_name + '!!'
-            print('')
+            print ''
         F.write(com.description)
         F.close()
 
@@ -127,9 +127,9 @@ def print_commands_for_csource(commands_list):
         rgx1 = re.sub(r'"', r'\"', rgx)
         rgx2 = re.sub(r'\n', r'\\n"\n"', rgx1)
         if (com != commands_list[-1]):
-            print('{"%s", "%s"},' % (com.command_name, rgx2))
+            print '{"%s", "%s"},' % (com.command_name, rgx2)
         else:
-            print('{"%s", "%s"}' % (com.command_name, rgx2))
+            print '{"%s", "%s"}' % (com.command_name, rgx2)
 
 
 def get_opts():
@@ -162,7 +162,7 @@ def main():
     if opts.txtfiles:
         if not os.path.exists(opts.txtfiles):
             # print 'Error: path %s not found' % abs_path
-            print('')
+            print ''
             exit(1)
 
     search_paths = [_dir if os.path.isabs(_dir)
@@ -175,7 +175,7 @@ def main():
 
     if not_found:
         for _dir in not_found:
-            print('Error: path %s not found' % _dir)
+            print 'Error: path %s not found' % _dir
         exit(1)
 
     commands_list = find_all_commands(search_paths, [])
@@ -189,7 +189,7 @@ def main():
         print_commands_for_csource(commands_list)
 
     if opts.number_of_commands:
-        print(len(commands_list))
+        print len(commands_list)
 
 
 if __name__ == '__main__':

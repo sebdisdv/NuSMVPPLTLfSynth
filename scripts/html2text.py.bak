@@ -6,20 +6,9 @@
 #
 # $Id: html2text.py 355 2008-11-27 14:30:17Z fresh $
 
-from __future__ import absolute_import
 import sgmllib
+from string import replace, split, join
 
-def lower(s):
-    return s.lower()
-
-def replace(s, p1, p2):
-    return s.replace(p1,p2)
-
-def split(s):
-    return s.split()
-
-def join(a, s):
-    return s.join(a)
 
 class HTML2Text(sgmllib.SGMLParser):
 
@@ -86,7 +75,7 @@ class HTML2Text(sgmllib.SGMLParser):
 
     def unknown_starttag(self, tag, attrs):
         """ Convert HTML to something meaningful in plain text """
-        tag = lower(tag)
+        tag = str.lower(tag)
 
         if tag not in self.ignore_tags:
             if tag[0] == 'h' or tag in ['br', 'pre', 'p', 'hr']:
@@ -98,7 +87,7 @@ class HTML2Text(sgmllib.SGMLParser):
                 src = ''
 
                 for k, v in attrs:
-                    if lower(k) == 'src':
+                    if str.lower(k) == 'src':
                         src = v
 
                 self.add_break()
@@ -128,7 +117,7 @@ class HTML2Text(sgmllib.SGMLParser):
 
     def unknown_endtag(self, tag):
         """ Convert HTML to something meaningful in plain text """
-        tag = lower(tag)
+        tag = str.lower(tag)
 
         if tag not in self.ignore_tags:
             if tag[0] == 'h' or tag in ['pre']:
