@@ -202,13 +202,13 @@ class PLTL_pattern:
             "unary": [PLTL_pattern.existence, PLTL_pattern.abscence],
             "binary": [
                 PLTL_pattern.choice,
-                PLTL_pattern.exclusive_choice,
+                # PLTL_pattern.exclusive_choice,
                 PLTL_pattern.co_existence,
                 PLTL_pattern.responded_existence,
                 PLTL_pattern.response,
                 PLTL_pattern.precedence,
                 PLTL_pattern.chain_response,
-                PLTL_pattern.chain_precedence,
+                # PLTL_pattern.chain_precedence,
                 PLTL_pattern.chain_succession,
                 PLTL_pattern.not_co_existence,
                 PLTL_pattern.not_succession,
@@ -281,13 +281,13 @@ class LTLf_pattern:
             "unary": [LTLf_pattern.existence, LTLf_pattern.abscence],
             "binary": [
                 LTLf_pattern.choice,
-                LTLf_pattern.exclusive_choice,
+                # LTLf_pattern.exclusive_choice,
                 LTLf_pattern.co_existence,
                 LTLf_pattern.responded_existence,
                 LTLf_pattern.response,
                 LTLf_pattern.precedence,
                 LTLf_pattern.chain_response,
-                LTLf_pattern.chain_precedence,
+                # LTLf_pattern.chain_precedence,
                 LTLf_pattern.chain_succession,
                 LTLf_pattern.not_co_existence,
                 LTLf_pattern.not_succession,
@@ -300,13 +300,13 @@ mapping = {
     PLTL_pattern.existence: LTLf_pattern.existence,
     PLTL_pattern.abscence: LTLf_pattern.abscence,
     PLTL_pattern.choice: LTLf_pattern.choice,
-    PLTL_pattern.exclusive_choice: LTLf_pattern.exclusive_choice,
+    # PLTL_pattern.exclusive_choice: LTLf_pattern.exclusive_choice,
     PLTL_pattern.co_existence: LTLf_pattern.co_existence,
     PLTL_pattern.responded_existence: LTLf_pattern.responded_existence,
     PLTL_pattern.response: LTLf_pattern.response,
     PLTL_pattern.precedence: LTLf_pattern.precedence,
     PLTL_pattern.chain_response: LTLf_pattern.chain_response,
-    PLTL_pattern.chain_precedence: LTLf_pattern.chain_precedence,
+    # PLTL_pattern.chain_precedence: LTLf_pattern.chain_precedence,
     PLTL_pattern.chain_succession: LTLf_pattern.chain_succession,
     PLTL_pattern.not_co_existence: LTLf_pattern.not_co_existence,
     PLTL_pattern.not_succession: LTLf_pattern.not_succession,
@@ -370,11 +370,15 @@ def create_formula(depth: int) -> str:
     methods_future = []
 
     for i in range(len(methods_type)):
+        if i == 0:    
+            methods_type[i] = 2
+       
         methods_past.append(
-            random.choice(unary_past if methods_type[i] == 1 else binary_past)
-        )
+                random.choice(unary_past if methods_type[i] == 1 else binary_past)
+            )
         methods_future.append(mapping[methods_past[i]])
-        print(methods_past[i], methods_future[i])
+            
+        # print(methods_past[i], methods_future[i])
 
     # from pprint import pprint as print
     #
@@ -417,13 +421,37 @@ def create_formula(depth: int) -> str:
 
                 atoms_used.add(p)
 
-    return formula_past, f"F({formula_future})", atoms_used
-    # return formula_past, formula_future, atoms_used
+    #return formula_past, f"F({formula_future})", atoms_used
+    return formula_past, formula_future, atoms_used
 
 
 def check_sat(formula):
-    return os.popen(f"black solve -f '{formula}'").read()[:-1] == "SAT"
+    return os.popen(f"black solve --finite -f '{formula}'").read()[:-1] == "SAT"
 
+def check_validity(formula):
+    return os.popen(f"black solve  --finite -v -f  '{formula}'").read()[:-1] == "VALID"
+
+def test():
+    unary, binary = PLTL_pattern.get_op_dict().values()
+    f_past, f_future, method = [],[],[]
+    for x in unary:
+        f_past.append(f"F(({x('a')}) & wX(False))")
+        f_future.append(f"{mapping[x]('a')}")
+        method.append(x)
+        
+    for x in binary:
+        f_past.append(f"F(({x('a','b')}) & wX(False))")
+        f_future.append(f"{mapping[x]('a', 'b')}")
+        method.append(x)
+    
+    for i in range(len(f_past)):
+        print("/"*30, "\n")
+        print("Property := ", str(method[i]).split()[1].split(".")[1])
+        print(f"PAST = {f_past[i]}")
+        print(f"FUTURE = {f_future[i]}")
+        print(f"{f_past[i]} <-> ({f_future[i]})")
+        print(check_validity(f"{f_past[i]} <-> {f_future[i]}"))
+        print("\n")
 
 def write_to_json(formulas, filename):
     res = {}
@@ -446,6 +474,8 @@ def write_to_json(formulas, filename):
 
 def main(args):
 
+    
+    
     # sat formulas counter
     generated_formulas = []
     n_formulas = 0
@@ -461,16 +491,17 @@ def main(args):
             args["depth"]
         )
     
-        if check_sat(formula_past) and check_sat(formula_future):        
+        if check_sat(formula_past) and check_sat(formula_future) and check_validity(f"F(({formula_past}) & wX(False)) <-> {formula_future}"):        
             if not bool(const & extract_atomic_varaibles(formula_past)):
-                generated_formulas.append((formula_past, formula_future, n_atoms))
+                generated_formulas.append((formula_past, f"F({formula_future})", n_atoms))
+                print(f"{n_formulas + 1} / {args['number']}")
                 n_formulas += 1
 
     write_to_json(generated_formulas, args["filename"])
 
 
 if __name__ == "__main__":
-        
+
     args = ArgumentParser()
     args.add_argument(
         "-s",
