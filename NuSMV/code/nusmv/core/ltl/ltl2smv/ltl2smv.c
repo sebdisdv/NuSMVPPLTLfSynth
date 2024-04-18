@@ -1059,7 +1059,8 @@ static node_ptr generate_smv_module(const NuSMVEnv_ptr env,
     NODE_LIST(NuSMVEnv_get_value(env, ENV_LTL2SMV_JUSTICE_DECL));
   NodeList_ptr init_declarations =
     NODE_LIST(NuSMVEnv_get_value(env, ENV_LTL2SMV_INIT_DECL));
-
+  const ExprMgr_ptr exprs =
+      EXPR_MGR(NuSMVEnv_get_value(env, ENV_EXPR_MANAGER));
   /* We use an offset of 2 for avoiding clash with 0 and NULL */
   unsigned int specificationNumber =
     (unsigned int)(nusmv_ptrint)NuSMVEnv_get_value(env, ENV_LTL2SMV_SPECIFICATION_NUMBER) - 2;
@@ -1071,9 +1072,11 @@ static node_ptr generate_smv_module(const NuSMVEnv_ptr env,
   char* pre_prefix;
   char* prefix_name;
   char* ltl_module_base_name;
-  
-  pre_prefix = ((NULL == prefixes || NULL == prefixes->pre_prefix)?
-                PRE_PREFIX : prefixes->pre_prefix);
+  string_ptr goal_name;
+  node_ptr goal_name_node;
+  node_ptr top_level_formula_name;
+
+  pre_prefix = ((NULL == prefixes || NULL == prefixes->pre_prefix) ? PRE_PREFIX : prefixes->pre_prefix);
 
   prefix_name = ((NULL == prefixes || NULL == prefixes->prefix_name)?
                  PREFIXNAME : prefixes->prefix_name);
@@ -1087,17 +1090,27 @@ static node_ptr generate_smv_module(const NuSMVEnv_ptr env,
   // all_declr = cons(nodemgr, new_node(nodemgr, INIT, whole_expression_name, Nil), Nil);
   all_declr = Nil;
   /* Add a new name as the name of the whole formula */
-  all_declr = cons(nodemgr, new_node(nodemgr, DEFINE,
-                                     cons(nodemgr,
-                                          new_node(nodemgr, EQDEF,
-                                                   find_node(nodemgr, ATOM,
-                                                             (node_ptr)generate_string(strings, "%s%u%stop_level_formula_name",
-                                                                         pre_prefix, specificationNumber,
-                                                                         prefix_name), Nil),
-                                                   whole_expression_name), Nil), Nil), all_declr);
-
+  top_level_formula_name = find_node(nodemgr, ATOM,
+                                              (node_ptr)generate_string(strings, "%s%u%stop_level_formula_name",
+                                                                        pre_prefix, specificationNumber,
+                                                                        prefix_name),
+                                              Nil);
+  goal_name = generate_string(strings, "__goal__");
+  goal_name_node = find_node(nodemgr, ATOM, (node_ptr)goal_name, Nil);
+  all_declr = cons(nodemgr, 
+    new_node(nodemgr, VAR, cons(nodemgr, 
+      new_node(nodemgr, COLON, goal_name_node, find_node(nodemgr, BOOLEAN, Nil, Nil)), Nil), Nil), all_declr);
+  all_declr = cons(nodemgr, new_node(nodemgr, DEFINE, cons(nodemgr, 
+      new_node(nodemgr, EQDEF, top_level_formula_name, whole_expression_name), Nil), Nil), 
+        all_declr);
+  all_declr = cons(nodemgr, new_node(nodemgr, INIT,
+                      ExprMgr_equal(exprs, goal_name_node, ExprMgr_false(exprs), SYMB_TABLE(NULL)), Nil),
+                            all_declr);
+  all_declr = cons(nodemgr, new_node(nodemgr, TRANS,
+                    ExprMgr_iff(exprs, top_level_formula_name, ExprMgr_next(exprs, goal_name_node, SYMB_TABLE(NULL))), Nil),
+                            all_declr);
   
-
+  
   if (single_justice) {
     const ExprMgr_ptr exprs =
       EXPR_MGR(NuSMVEnv_get_value(env, ENV_EXPR_MANAGER));
