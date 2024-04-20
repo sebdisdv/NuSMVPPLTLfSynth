@@ -146,7 +146,7 @@ class PLTL_pattern:
 
     @staticmethod
     def abscence(p: str) -> str:
-        return f"!O({p})"
+        return f"!(O({p}))"
 
     @staticmethod
     def choice(p1: str, p2: str) -> str:
@@ -186,15 +186,15 @@ class PLTL_pattern:
 
     @staticmethod
     def not_co_existence(p1: str, p2: str) -> str:
-        return f"O({p1}) -> !O({p2})"
+        return f"O({p1}) -> !(O({p2}))"
 
     @staticmethod
     def not_succession(p1: str, p2: str) -> str:
-        return f"H(({p2}) -> !O({p1}))"
+        return f"H(({p2}) -> !(O({p1})))"
 
     @staticmethod
     def not_chain_succession(p1: str, p2: str) -> str:
-        return f"H(({p2}) -> !Y({p1}))"
+        return f"H(({p2}) -> !(Y({p1})))"
 
     @staticmethod
     def get_op_dict() -> dict:
@@ -225,7 +225,7 @@ class LTLf_pattern:
 
     @staticmethod
     def abscence(p: str) -> str:
-        return f"!F({p})"
+        return f"!(F({p}))"
 
     @staticmethod
     def choice(p1: str, p2: str) -> str:
@@ -265,15 +265,15 @@ class LTLf_pattern:
 
     @staticmethod
     def not_co_existence(p1: str, p2: str) -> str:
-        return f"F({p1}) -> !F({p2})"
+        return f"F({p1}) -> !(F({p2}))"
 
     @staticmethod
     def not_succession(p1: str, p2: str) -> str:
-        return f"G(({p1}) -> !F({p2}))"
+        return f"G(({p1}) -> !(F({p2})))"
 
     @staticmethod
     def not_chain_succession(p1: str, p2: str) -> str:
-        return f"G(({p1}) -> !X({p2}))"
+        return f"G(({p1}) -> !(X({p2})))"
 
     @staticmethod
     def get_op_dict() -> dict:
@@ -429,7 +429,7 @@ def check_sat(formula):
     return os.popen(f"black solve --finite -f '{formula}'").read()[:-1] == "SAT"
 
 def check_validity(formula):
-    return os.popen(f"black solve  --finite -v -f  '{formula}'").read()[:-1] == "VALID"
+    return os.popen(f"black solve  --finite  -f  '{formula}'").read()[:-1] == "UNSAT"
 
 def test():
     unary, binary = PLTL_pattern.get_op_dict().values()
@@ -491,9 +491,9 @@ def main(args):
             args["depth"]
         )
     
-        if check_sat(formula_past) and check_sat(formula_future) and check_validity(f"F(({formula_past}) & wX(False)) <-> {formula_future}"):        
+        if check_sat(formula_past) and check_sat(formula_future) and check_validity(f"!( (F(({formula_past}) & wX(False))) <-> ({formula_future}) )"):        
             if not bool(const & extract_atomic_varaibles(formula_past)):
-                generated_formulas.append((formula_past, f"F({formula_future})", n_atoms))
+                generated_formulas.append((formula_past, formula_future, n_atoms))
                 print(f"{n_formulas + 1} / {args['number']}")
                 n_formulas += 1
 
@@ -501,6 +501,8 @@ def main(args):
 
 
 if __name__ == "__main__":
+    
+  
 
     args = ArgumentParser()
     args.add_argument(

@@ -9,6 +9,7 @@ from pylogics.syntax.base import And, Or, Implies, Equivalence, TrueFormula, Fal
 from random import sample, seed
 from typing import List
 
+from re import search
 
 LTL2SMV_EXEC_PATH = "NuSMV/build/bin/ltl2smv"
 
@@ -34,15 +35,21 @@ class PLTL2NuSmv():
             self.formula_str = f.readline()[:-1]
         with open(input_file.replace("formulas","controllables")) as f:
             self._controllable = f.readline()[:-1].split(",")
+        with open(input_file.replace("formulas", "uncontrollables")) as f:
+            self._notcontrollable = f.readline()[:-1].split(",")
         
+        pattern_vars = r"\s*([a-zA-z0-9]*)\s*:\s*boolean.*;"
+        pattern_trans = r"\s*([a-zA-z0-9]*)\s*(.)*\s*next(.*)"
+        pattern_define = r"\s*([a-zA-z0-9]*)\s*:=\s*(.*);"
         
+        self._atomic_vars = self._controllable + self._notcontrollable        
         # print(input_file)
         # print(self._controllable)
         # exit()
         # print(self._controllable)
         # print(self.formula_str)
         
-        self._formula = parse_pltl(self.formula_str)
+        # self._formula = parse_pltl(self.formula_str)
         
         # print(self._formula)
         
@@ -53,19 +60,43 @@ class PLTL2NuSmv():
         # self._fname = f"Pltl2Nusmv/output/{fname}.smv"
          
         self._tableaux = get_tableaux_lines(self._f_file)
+        
         if self._tableaux == None:
             print("VALUERROR")
             raise ValueError("Something went wrong for the subproccess handling the creation of the tablueaux")
-        index_st = self._tableaux.index("VAR")
-        index_define = self._tableaux.index("DEFINE")
-        for i in range(index_st+1, index_define):
-            var = self._tableaux[i].split()[0]
-            self._tableaux_vars.append(var)
+        
+        # index_st = self._tableaux.index("VAR")
+        
+        # index_define = self._tableaux.index("DEFINE")
+        
+        self.define_lines = []
+        self.vars_lines = []
+        self.trans_lines = []
+        
+        for line in self._tableaux:
+            pat = search(pattern_vars, line)
+            if pat is not None:
+                self.vars_lines.append(pat[0])
+                if "goal" not in pat.group(0):
+                    self._tableaux_vars.append(pat.group(0).split()[0])
+            pat = search(pattern_define, line)
+            if pat is not None:
+                self.define_lines.append(pat[0])
+                
+            pat = search(pattern_trans, line)
+            if pat is not None:
+                self.trans_lines.append(pat[0])
+                
+            
+        
+        #for i in range(index_st+1, index_define):
+        #    var = self._tableaux[i].split()[0]
+        #    self._tableaux_vars.append(var)
 
-        self._atomic_vars = self._extract_atomic_variables()
+        # self._atomic_vars = self._extract_atomic_variables()
         # self._controllable = controllables if controllables is not None else self._get_random_controllable()
-        self._notcontrollable = self._get_notcontrollable()
-        self._toplevel = self._get_top_level() 
+        # self._notcontrollable = self._get_notcontrollable()
+        # self._toplevel = self._get_top_level() 
 
     
     def _extract_atomic_variables(self):
@@ -106,8 +137,57 @@ class PLTL2NuSmv():
     def _get_top_level(self):
         def_index = self._tableaux.index("DEFINE")
         for i in range(def_index, len(self._tableaux)):
-            if "top_level_formula_name" in self._tableaux[i]:
+            if "top_level_formula_name :=" in self._tableaux[i]:
                 return self._tableaux[i].split()[0]
+
+    def write_nusmv_new(self):
+        with open(self._fname, "w") as file:
+            file.write("MODULE main\n")
+            
+            file.write("VAR\n")
+            for l in self.vars_lines:
+                file.write(f"{l}\n")
+            for v in self._atomic_vars:
+                file.write(f"\t{v} : boolean;\n")
+            
+            file.write("DEFINE\n")
+            for l in self.define_lines:
+                file.write(f"{l}\n")
+            
+            for l in self._tableaux_vars:
+                file.write("INIT\n")
+                file.write(f"\t{l} = FALSE\n")
+            file.write("INIT\n")
+            file.write(f"\t__goal__ = FALSE\n")
+            
+            for l in self.trans_lines:
+                file.write("TRANS\n")
+                file.write(f"{l}\n")
+            
+            file.write("CONTROLLABLES   ")
+            for i in range(len(self._controllable) - 1):
+                file.write(f"{self._controllable[i]},")
+            file.write(f"{self._controllable[-1]};")
+            file.write("\n")
+
+            file.write("NOTCONTROLLABLES    ")
+            for i in range(len(self._notcontrollable) - 1):
+                file.write(f"{self._notcontrollable[i]},")
+            file.write(f"{self._notcontrollable[-1]};\n")
+
+            file.write("PNFVARS     ")
+            for i in range(len(self._tableaux_vars) - 1):
+                file.write(f"{self._tableaux_vars[i]},")
+            file.write(f"{self._tableaux_vars[-1]},")
+            file.write(f"__goal__;\n")
+                        
+            file.write("REALIZABLE  ")
+            file.write("__goal__;\n")
+            
+            
+        
+        return self._fname
+            
 
     def write_nusmv(self):
         with open(self._fname, "w") as file:
@@ -155,7 +235,7 @@ def main(settings):
     fsmv = PLTL2NuSmv(input_file=settings.input, fname=settings.fname)
     print(fsmv._controllable)
     print(fsmv._notcontrollable)
-    print(fsmv.write_nusmv())
+    print(fsmv.write_nusmv_new())
 
 if __name__ == "__main__":
 

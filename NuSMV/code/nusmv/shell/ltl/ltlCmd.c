@@ -99,11 +99,16 @@ void Ltl_Init(NuSMVEnv_ptr env)
 
 boolean Realizable(NuSMVEnv_ptr env, BddFsm_ptr fsm, bdd_ptr property)
 {
-  bdd_ptr initial = Nil, check_condition = Nil, old_bf = Nil, bf = Nil, notbf = Nil, tmp = Nil;
+  bdd_ptr initial = Nil,  check_condition = Nil, old_bf = Nil, bf = Nil, notbf = Nil, tmp = Nil;
   int step = 0;
   boolean realizable = false;
 
   initial = BddFsm_get_init(fsm);
+
+  //printf("initial\n");
+  //dd_printminterm(fsm->dd, initial);
+  
+  
 
   bf = bdd_dup(property);
 
@@ -115,19 +120,27 @@ boolean Realizable(NuSMVEnv_ptr env, BddFsm_ptr fsm, bdd_ptr property)
     step++;
 
     bdd_free(fsm->dd, old_bf);
-    old_bf = bdd_dup(bf);
+    old_bf = bf;
     
 
     
-    bf = BddFsm_get_strong_pre_image_fa_ncontr_ex_contr_ex_pnf(fsm, old_bf); // strong preimage
-    //bf = BddFsm_get_strong_pre_image_ex_contr_fa_ncontr_ex_pnf(fsm, old_bf);
+   // bf = BddFsm_get_strong_pre_image_fa_ncontr_ex_contr_ex_pnf(fsm, old_bf); // strong preimage
+    bf = BddFsm_get_strong_pre_image_ex_contr_fa_ncontr_ex_pnf(fsm, old_bf);
+    
+    //printf("bf\n");
+    //dd_printminterm(fsm->dd, bf);
+
     bdd_or_accumulate(fsm->dd, &bf, old_bf);
 
     notbf = bdd_not(fsm->dd, bf);
     check_condition = bdd_and(fsm->dd, notbf, initial);
-    //check_condition = bdd_and(fsm->dd, bf, initial);
-    //if(bdd_is_false(fsm->dd, check_condition))
-    //if(check_condition == initial)
+
+    
+
+    //printf("check cond\n");
+    //dd_printminterm(fsm->dd, check_condition);
+
+   
     if (bdd_is_false(fsm->dd, check_condition))
     {
       realizable = true;
@@ -150,11 +163,17 @@ int CommandCheckRealizability(NuSMVEnv_ptr env, int argc, char** argv){
   node_ptr toplevel = (node_ptr)NuSMVEnv_get_value(env, ENV_REALIZABLE);
   bdd_ptr property;
   time_t start, end;
+  
+  
+  
   double diff_time;
 
   property = BddEnc_expr_to_bdd(fsm->enc, toplevel, Nil);
-   
- 
+  
+  //dd_printminterm(fsm->dd, property);
+  
+
+  
   time(&start);
   if (Realizable(env, fsm, property)){
     printf("realizable\n");

@@ -842,7 +842,7 @@ BddStatesInputs BddFsm_get_strong_pre_image_fa_ncontr_ex_contr_ex_pnf(const BddF
                                                  BddStates states)
 {
 
-  bdd_ptr result, trans, imply, ex_pnf, ex_contr, nstates, tmp;
+  bdd_ptr result, trans, imply, fa_pnf, ex_contr, nstates, tmp;
 
   nstates = BddEnc_state_var_to_next_state_var(self->enc, states);
   
@@ -865,24 +865,26 @@ BddStatesInputs BddFsm_get_strong_pre_image_fa_ncontr_ex_contr_ex_pnf(const BddF
   bdd_free(self->dd, trans);
 
   //printf("pnfvars\n");
+  fa_pnf = bdd_forall(self->dd, imply, pnfvars);
   //ex_pnf = bdd_forsome(self->dd, imply, pnfvars);
-  ex_pnf = bdd_forsome(self->dd, imply, pnfvars);
   
   bdd_free(self->dd, imply);
   
   //printf("controllable\n");
-  ex_contr = bdd_forsome(self->dd, ex_pnf, controllable);
-  bdd_free(self->dd, ex_pnf);
+  ex_contr = bdd_forsome(self->dd, fa_pnf, controllable);
+  bdd_free(self->dd, fa_pnf);
 
   result = bdd_forall(self->dd, ex_contr, notcontrollable);
   bdd_free(self->dd, ex_contr);
 
-  tmp = (bdd_ptr) bdd_fsm_get_legal_state_input(self);
-  bdd_and_accumulate(self->dd, &result, tmp);
-  bdd_free(self->dd, tmp);
+  //tmp = (bdd_ptr) bdd_fsm_get_legal_state_input(self);
+  //bdd_and_accumulate(self->dd, &result, tmp);
+  //bdd_free(self->dd, tmp);
 
   return BDD_STATES_INPUTS(result);
 }
+
+
 
 BddStatesInputs BddFsm_get_strong_pre_image_fa_ncontr_ex_contr_ex_pnf_OPTIM(const BddFsm_ptr self,
                                                  BddStates states)
@@ -938,31 +940,31 @@ BddStatesInputs BddFsm_get_strong_pre_image_fa_ncontr_ex_contr_ex_pnf_OPTIM(cons
 BddStatesInputs BddFsm_get_strong_pre_image_ex_contr_fa_ncontr_ex_pnf(const BddFsm_ptr self,
                                                  BddStates states)
 {
-
-  bdd_ptr result, trans, imply, ex_pnf, fa_ncontr, tmp, nstates;
+  bdd_ptr result, trans, imply, fa_pnf, fa_ncontr, tmp, nstates;
 
   nstates = BddEnc_state_var_to_next_state_var(self->enc, states);
 
-  
   trans = BddFsm_get_monolithic_trans_bdd(self);
-  
-  
+    
   imply = bdd_imply(self->dd, trans, nstates);
   bdd_free(self->dd, trans);
 
-  ex_pnf = bdd_forsome(self->dd, imply, pnfvars);
+  //ex_pnf = bdd_forsome(self->dd, imply, pnfvars);
+  fa_pnf = bdd_forall(self->dd, imply, pnfvars);
   bdd_free(self->dd, imply);
   
-  fa_ncontr = bdd_forall(self->dd, ex_pnf, notcontrollable);
-  bdd_free(self->dd, ex_pnf);
+  fa_ncontr = bdd_forall(self->dd, fa_pnf, notcontrollable);
+  bdd_free(self->dd, fa_pnf);
 
   result = bdd_forsome(self->dd, fa_ncontr, controllable);
+  
+  printf("results forsome \n");
+  dd_printminterm(self->dd, result);
+  
   bdd_free(self->dd, fa_ncontr);
-
-  tmp = (bdd_ptr) bdd_fsm_get_legal_state_input(self);
-  bdd_and_accumulate(self->dd, &result, tmp);
-  bdd_free(self->dd, tmp);
-
+  //tmp = (bdd_ptr) bdd_fsm_get_legal_state_input(self);
+  //bdd_and_accumulate(self->dd, &result, tmp);
+  //bdd_free(self->dd, tmp);
   return BDD_STATES_INPUTS(result);
 }
 

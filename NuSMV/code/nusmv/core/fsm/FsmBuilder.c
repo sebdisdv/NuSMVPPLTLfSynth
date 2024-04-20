@@ -116,8 +116,6 @@ BddVarSet_ptr controllable = NULL;
 BddVarSet_ptr notcontrollable = NULL;
 BddVarSet_ptr pnfvars = NULL;
 
-
-
 /*---------------------------------------------------------------------------*/
 /* Static function prototypes                                                */
 /*---------------------------------------------------------------------------*/
@@ -394,23 +392,24 @@ BddFsm_ptr FsmBuilder_create_bdd_fsm(const FsmBuilder_ptr self,
   cv = Set_Make(fcv);
   c_cube = BddEnc_get_vars_cube(enc, cv, VFT_CURRENT);
 
-  nc_cube = BddEnc_state_var_to_next_state_var(enc, c_cube);//next controllables
+  nc_cube = BddEnc_state_var_to_next_state_var(enc, c_cube); // next controllables
 
-
-  for (node_ptr i = notcontrollables_list; i != Nil; i = cdr(i)){
+  for (node_ptr i = notcontrollables_list; i != Nil; i = cdr(i))
+  {
     fncv = cons(nodemgr, Compile_FlattenSexp(st, car(i), Nil), fncv);
   }
   ncv = Set_Make(fncv);
   u_cube = BddEnc_get_vars_cube(enc, ncv, VFT_CURRENT);
 
-
-  for (node_ptr i = pnfvars_list; i != Nil; i = cdr(i)){
+  for (node_ptr i = pnfvars_list; i != Nil; i = cdr(i))
+  {
     fpnfv = cons(nodemgr, Compile_FlattenSexp(st, car(i), Nil), fpnfv);
   }
   pnfv = Set_Make(fpnfv);
   pnfv_cube = BddEnc_get_vars_cube(enc, pnfv, VFT_CURRENT);
 
-  //u_cube = bdd_cube_diff(dd_manager, state_vars_cube, c_cube);
+
+  // u_cube = bdd_cube_diff(dd_manager, state_vars_cube, c_cube);
 
   // Per ogni controllables, prendo le variabili bdd corrispondenti, le accumulo con and,
 
@@ -431,45 +430,43 @@ BddFsm_ptr FsmBuilder_create_bdd_fsm(const FsmBuilder_ptr self,
   dd_printminterm(dd_manager, state_vars_cube);
 
   printf("Controllables\n");
-  dd_printminterm(dd_manager, c_cube); 
-  
+  dd_printminterm(dd_manager, c_cube);
+
   printf("NotControllables\n");
-  dd_printminterm(dd_manager, u_cube); 
+  dd_printminterm(dd_manager, u_cube);
 
   printf("PnfVars\n");
   dd_printminterm(dd_manager, pnfv_cube);
 
 
+  
+  
+  
   // Init global containing vars
 
   if (controllable == NULL)
   {
-    controllable = BddEnc_state_var_to_next_state_var(enc, c_cube);
+    controllable = bdd_dup(c_cube);
   }
 
   if (notcontrollable == NULL)
   {
-    notcontrollable = BddEnc_state_var_to_next_state_var(enc, u_cube);
+    notcontrollable = bdd_dup(u_cube);
   }
 
   if (pnfvars == NULL)
   {
     pnfvars = BddEnc_state_var_to_next_state_var(enc, pnfv_cube);
   }
-  
-  
 
+  //if(goal == NULL){
+  //  goal = bdd_dup(p_cube);
+  //}
 
-  bddfsm = FsmBuilder_create_bdd_fsm_of_vars(self, sexp_fsm, trans_type, enc,
-                                             c_cube, u_cube,
-                                             nc_cube);
-
-  
- 
-  
+  bddfsm = FsmBuilder_create_bdd_fsm_of_vars(self, sexp_fsm, trans_type, enc, c_cube, u_cube, nc_cube);
 
   bdd_free(dd_manager, (bdd_ptr)state_vars_cube);
-  
+
   bdd_free(dd_manager, (bdd_ptr)c_cube);
   bdd_free(dd_manager, (bdd_ptr)nc_cube);
   bdd_free(dd_manager, (bdd_ptr)u_cube);
