@@ -27,7 +27,7 @@ def create_NuSMV_files(folder):
                 outputs.append(
                     (
                         p.formula_str,
-                        p.write_nusmv(),
+                        p.write_nusmv_new(),
                         p._fname,
                         len(p._controllable),
                         len(p._notcontrollable),
@@ -87,6 +87,8 @@ def prepare_dataset(f):
         os.mkdir(f"Pltl2Nusmv/input/{base_name}/formulas")
     if not os.path.isdir(f"Pltl2Nusmv/input/{base_name}/controllables"):
         os.mkdir(f"Pltl2Nusmv/input/{base_name}/controllables")
+    if not os.path.isdir(f"Pltl2Nusmv/input/{base_name}/uncontrollables"):
+        os.mkdir(f"Pltl2Nusmv/input/{base_name}/uncontrollables")
    
 
     for k, v in j_file.items():
@@ -96,6 +98,10 @@ def prepare_dataset(f):
                 f"Pltl2Nusmv/input/{base_name}/controllables/{k}.txt", "w"
             ) as wf2:
                 wf2.write(f"{','.join(v['controllable'])}\n")
+            with open(
+                f"Pltl2Nusmv/input/{base_name}/uncontrollables/{k}.txt", "w"
+            ) as wf2:
+                wf2.write(f"{','.join(v['uncontrollable'])}\n")
 
     print(f"Wrote files to 'Pltl2Nusmv/input/{base_name}")
     return os.path.join("Pltl2Nusmv", "input", base_name)
@@ -115,7 +121,7 @@ def main(settings):
     res = {}
     with open(log_file, "w") as out:
         out.write(
-            "Specification, Controllables, NotControllables, PnfVars, Time, Results\n"
+            "formula,n_atoms,result,time\n"
         )
         # out.write(f"Time for creating Symbolic systems {nano2ms(e_time - s_time)} ns \n")
         for output in outputs:
@@ -130,7 +136,7 @@ def main(settings):
                 print(cout[-3])
                 res[path.basename(output[2])[:-4]] = [cout[-3], nano2ms(e_time - s_time)]
                 out.write(
-                    f"{path.basename(output[2])[:-4]},{output[3]}, {output[4]}, {output[5]},{nano2ms(e_time - s_time)}, {cout[-3]}\n"
+                    f"{path.basename(output[2])[:-4]},{output[3] + output[4]},{cout[-3]},{nano2ms(e_time - s_time)}\n"
                 )
             else:
                 res[path.basename(output[2])[:-4]] = ["Error", nano2ms(e_time - s_time)]
@@ -153,7 +159,8 @@ def main_nike(args):
     res = []
 
     for k in data:
-        formula = data[k]["formula_future"]
+        formula:str = data[k]["formula_future"]
+        formula = formula.replace("X", "X[!]")
         controllable = data[k]["controllable"]
         uncontrollable = data[k]["uncontrollable"]
         with open("temp_part.txt", "w") as file:
@@ -161,15 +168,14 @@ def main_nike(args):
             file.write(f".outputs: {' '.join(controllable)}\n")
 
         print("/" * 30)
+        print(k)
         print(formula)
         print(f"uncontrollable: {uncontrollable}")
         print(f"controllable: {controllable}")
         start = time.time_ns()
-        # print(os.popen(f'./nike-app -i "{formula}" --mode bdd --strategy 2 --part "temp_part.txt" ').readlines())
-        # print(os.popen(f'./nike-app -i "{formula}" --mode bdd --strategy 2 --part "temp_part.txt" ').read().replace("\n", '').lower())
         realizable = (
             os.popen(
-                f'{NIKE_APP_PATH} -i "{formula}" --mode bdd --strategy 2 --part "temp_part.txt" '
+                f'{NIKE_APP_PATH} -i "{formula}" --no-empty --mode bdd --strategy 2 --part "temp_part.txt" '
             )
             .read()
             .replace("\n", "")
@@ -182,7 +188,7 @@ def main_nike(args):
         )
 
     with open(f"Pltl2Nusmv/results_nike/{output_file}.csv", "w") as file:
-        file.write("formula, n_atoms, result, time\n")
+        file.write("formula,n_atoms,result,time\n")
         file.writelines([",".join([str(x) for x in r]) for r in res])
 
     print(f"File saved in 'Pltl2Nusmv/results_nike/{output_file}.csv'")

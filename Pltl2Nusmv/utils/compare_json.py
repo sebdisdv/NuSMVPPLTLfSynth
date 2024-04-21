@@ -45,7 +45,7 @@ def main(settings):
     print(inconsistensies)
     
     for i in inconsistensies:
-        data[i] = dataset[i]["formula_past"]
+        data[i] = [dataset[i]["formula_past"], dataset[i]["controllable"]]
     
     with open(f"inconsistentencies_in_{name}", "w") as ofile:
         json.dump(data, ofile)

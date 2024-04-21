@@ -958,14 +958,14 @@ BddStatesInputs BddFsm_get_strong_pre_image_ex_contr_fa_ncontr_ex_pnf(const BddF
 
   result = bdd_forsome(self->dd, fa_ncontr, controllable);
   
-  printf("results forsome \n");
-  dd_printminterm(self->dd, result);
+  //printf("results forsome \n");
+  //dd_printminterm(self->dd, result);
   
   bdd_free(self->dd, fa_ncontr);
   //tmp = (bdd_ptr) bdd_fsm_get_legal_state_input(self);
   //bdd_and_accumulate(self->dd, &result, tmp);
   //bdd_free(self->dd, tmp);
-  return BDD_STATES_INPUTS(result);
+  return result;
 }
 
 
