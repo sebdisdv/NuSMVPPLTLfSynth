@@ -1,3 +1,4 @@
+
 import json
 import random
 import os
@@ -5,6 +6,7 @@ import os
 
 from typing import List
 from argparse import ArgumentParser
+
 
 
 class PLTL:
@@ -341,7 +343,7 @@ def extract_atomic_varaibles(formula):
         elif curr_node_type in operand_classes:
             for op in curr_node.operands:
                 queue.append(op)
-        elif curr_node_type == FalseFormula:  # TODO check this part
+        elif curr_node_type == FalseFormula:  
             names.add("False")
         elif curr_node_type == TrueFormula:
             names.add("True")
@@ -424,12 +426,100 @@ def create_formula(depth: int) -> str:
     #return formula_past, f"F({formula_future})", atoms_used
     return formula_past, formula_future, atoms_used
 
+def create_formula_2(depth: int, rep = 2) -> str:
+    
+    atoms = lambda x : f"p{x}"
+
+    unary_past, binary_past = PLTL_pattern.get_op_dict().values()
+    # unary_future, binary_future = LTLf_pattern.get_op_dict().values()
+
+    methods_type = [
+        2 if x > 0.2 else 1 for x in [random.random() for _ in range(depth * rep)]
+    ]
+
+    methods_past = []
+    methods_future = []
+
+    for i in range(len(methods_type)):
+        if i == 0:    
+            methods_type[i] = 2
+       
+        methods_past.append(
+                random.choice(unary_past if methods_type[i] == 1 else binary_past)
+            )
+        methods_future.append(mapping[methods_past[i]])
+            
+        # print(methods_past[i], methods_future[i])
+
+    # from pprint import pprint as print
+    #
+    # print(methods_type)
+    # print(methods_past)
+    # print(methods_future)
+    # methods_type = [2 for _ in range(depth)]
+    # methods_past = [PLTL_pattern.response for _ in range(depth)]
+    # methods_future = [LTLf_pattern.response for _ in range(depth)]
+
+    atoms_used = set()
+    c = -1
+    atom_count = 0
+    fs = [[None,None] for _ in range(rep)]
+    for i in range(depth * rep):
+        
+        
+        if i // rep == 0:
+            c+=1
+            if methods_type[i] == 1:
+                p = atoms(atom_count)
+                atom_count += 1
+                fs[c][0] = methods_past[i](p)
+                fs[c][1] = methods_future[i](p)
+                atoms_used.add(p)
+            else:
+                p1, p2 = atoms(atom_count), atoms(atom_count+1)
+                atom_count +=2
+                fs[c][0] = methods_past[i](p1, p2)
+                fs[c][1] = methods_future[i](p1, p2)
+                atoms_used.add(p1)
+                atoms_used.add(p2)
+
+        else:
+            if methods_type[i] == 1:
+                fs[c][0] = methods_past[i](fs[c][0])
+                fs[c][1] = methods_future[i](fs[c][1])
+            else:
+                p = atoms(atom_count)
+                atom_count += 1
+
+                if random.random() < 0.5:
+                    fs[c][0] = methods_past[i](p, fs[c][0])
+                    fs[c][1] = methods_future[i](p, fs[c][1])
+                else:
+                    fs[c][0] = methods_past[i](fs[c][0], p)
+                    fs[c][1] = methods_future[i](fs[c][1], p)
+
+                atoms_used.add(p)
+                
+    f_past = fs[0][0]
+    f_future = fs[0][1]
+    
+    for i in range(1,rep):
+        f_past = f"{f_past} | {fs[i][0]}" if random.random() > 0.5 else f"{f_past} & {fs[i][0]}"
+        f_future = f"{f_future} | {fs[i][1]}" if random.random() > 0.5 else f"{f_future} & {fs[i][1]}"       
+    #return formula_past, f"F({formula_future})", atoms_used
+    return f_past, f_future, atoms_used
 
 def check_sat(formula):
-    return os.popen(f"black solve --finite -f '{formula}'").read()[:-1] == "SAT"
+    with open("temp_formula.txt", "w") as f:
+        f.write(formula)
+        # f.write("\n")
+    return os.popen(f"black solve --finite temp_formula.txt").read()[:-1] == "SAT"
 
 def check_validity(formula):
-    return os.popen(f"black solve  --finite  -f  '{formula}'").read()[:-1] == "UNSAT"
+    with open("temp_formula.txt", "w") as f:
+        f.write(formula)
+        # f.write("\n")
+    return os.popen(f"black solve  --finite  temp_formula.txt").read()[:-1] == "UNSAT"
 
 def test():
     unary, binary = PLTL_pattern.get_op_dict().values()
@@ -450,7 +540,10 @@ def test():
         print(f"PAST = {f_past[i]}")
         print(f"FUTURE = {f_future[i]}")
         print(f"{f_past[i]} <-> ({f_future[i]})")
-        print(check_validity(f"{f_past[i]} <-> {f_future[i]}"))
+        
+        print(f"past_sat = {check_sat(f_past[i])}")
+        print(f"future_sat = {check_sat(f_future[i])}")
+        print(check_validity(f"!(({f_past[i]}) <-> ({f_future[i]}))"))
         print("\n")
 
 def write_to_json(formulas, filename):
@@ -472,6 +565,24 @@ def write_to_json(formulas, filename):
         print(f"File {filename}.json saved in {os.path.join(os.getcwd(), 'Pltl2Nusmv', 'json_datasets')}")
    
 
+
+def all_check(formula_past, formula_future):
+    return check_sat(formula_past) and check_sat(formula_future) and check_validity(f"!( (F(({formula_past}) & wX(False))) <-> ({formula_future}) )")
+
+
+CONST = set(["True", "False"])
+
+def get_formula(depth):
+    formula_past, formula_future, n_atoms = create_formula(
+            depth
+    )
+    if all_check(formula_past, formula_future):        
+        if not bool(CONST & extract_atomic_varaibles(formula_past)):
+            return (formula_past, formula_future, n_atoms)
+            # print(f"{n_formulas + 1} / {args['number']}")
+            # n_formulas += 1
+    return None
+
 def main(args):
 
     
@@ -483,17 +594,37 @@ def main(args):
     # set seed
     random.seed(args["seed"])
     
-    const = set(["True", "False"])
+    # const = set(["True", "False"])
 
     while n_formulas < args["number"]:
-
-        formula_past, formula_future, n_atoms = create_formula(
-            args["depth"]
-        )
-    
-        if check_sat(formula_past) and check_sat(formula_future) and check_validity(f"!( (F(({formula_past}) & wX(False))) <-> ({formula_future}) )"):        
-            if not bool(const & extract_atomic_varaibles(formula_past)):
+        
+        
+        
+        #with concurrent.futures.ProcessPoolExecutor() as executor:
+        #    procs = [executor.submit(get_formula, args['depth']) for _ in range(6)]
+        #    
+        #    res = [p.result() for p in procs]
+        #    
+        #for r in res:
+        #    if r is not None:
+        #        generated_formulas.append(r)
+        #        n_formulas += 1
+        #        print(f"{n_formulas + 1} / {args['number']}")
+        
+        
+        if args["repeat"] == 1:
+            formula_past, formula_future, n_atoms = create_formula(
+                args["depth"]
+            )
+        else:
+            formula_past, formula_future, n_atoms = create_formula_2(
+                args["depth"], args["repeat"]
+            )
+        
+        if all_check(formula_past, formula_future):        
+            if not bool(CONST & extract_atomic_varaibles(formula_past)):
                 generated_formulas.append((formula_past, formula_future, n_atoms))
+                
                 print(f"{n_formulas + 1} / {args['number']}")
                 n_formulas += 1
 
@@ -502,6 +633,8 @@ def main(args):
 
 if __name__ == "__main__":
     
+    # test()
+    # exit()
   
 
     args = ArgumentParser()
@@ -539,4 +672,13 @@ if __name__ == "__main__":
         help="Name of the output json file",
     )
 
+    args.add_argument(
+        "-r",
+        "--repeat",
+        default=1,
+        required=False,
+        type=int,
+        help="raise this value to increase number of atoms"
+    )
+    
     main(vars(args.parse_args()))

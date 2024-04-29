@@ -100,6 +100,7 @@ void Ltl_Init(NuSMVEnv_ptr env)
 boolean Realizable(NuSMVEnv_ptr env, BddFsm_ptr fsm, bdd_ptr property)
 {
   bdd_ptr initial = Nil,  check_condition = Nil, old_bf = Nil, bf = Nil, notbf = Nil, tmp = Nil;
+ 
   int step = 0;
   boolean realizable = false;
 
@@ -132,7 +133,15 @@ boolean Realizable(NuSMVEnv_ptr env, BddFsm_ptr fsm, bdd_ptr property)
 
     bdd_or_accumulate(fsm->dd, &bf, old_bf);
 
+    //printf("bf\n");
+    //dd_printminterm(fsm->dd, bf);
+
+
     notbf = bdd_not(fsm->dd, bf);
+
+    //printf("NOTbf\n");
+    //dd_printminterm(fsm->dd, notbf);
+
     check_condition = bdd_and(fsm->dd, notbf, initial);
 
     
@@ -140,7 +149,7 @@ boolean Realizable(NuSMVEnv_ptr env, BddFsm_ptr fsm, bdd_ptr property)
     //printf("check cond\n");
     //dd_printminterm(fsm->dd, check_condition);
 
-   
+
     if (bdd_is_false(fsm->dd, check_condition))
     {
       realizable = true;

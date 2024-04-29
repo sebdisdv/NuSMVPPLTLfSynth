@@ -11,12 +11,15 @@ from typing import List
 
 from re import search
 
-LTL2SMV_EXEC_PATH = "NuSMV/build/bin/ltl2smv"
+from dotenv import load_dotenv
+
+
 
 def get_tableaux_lines(input_file):
     tableaux = None
+    load_dotenv()
     try:
-        tableaux = subprocess.run([LTL2SMV_EXEC_PATH,"1", input_file], capture_output=True, text=True, check=True)
+        tableaux = subprocess.run([os.environ["LTL2SMV_EXEC_PATH"],"1", input_file], capture_output=True, text=True, check=True)
     except subprocess.SubprocessError:
         return None
     return tableaux.stdout.split("\n")
@@ -28,7 +31,7 @@ class PLTL2NuSmv():
     def __init__(self,input_file:str, fname: str, problem_name:str = None):
         self._f_file = input_file
         self._tableaux_vars = []
-
+        
        
         
         with open(input_file) as f:
@@ -264,4 +267,5 @@ if __name__ == "__main__":
         type=str,
         help="The name for the output smv file"
     )
+    
     main(settings=argsparser.parse_args())
