@@ -6,13 +6,24 @@
 #
 # $Id: html2text.py 355 2008-11-27 14:30:17Z fresh $
 
+from __future__ import absolute_import
 import sgmllib
-from string import lower, replace, split, join
 
+def lower(s):
+    return s.lower()
+
+def replace(s, p1, p2):
+    return s.replace(p1,p2)
+
+def split(s):
+    return s.split()
+
+def join(a, s):
+    return s.join(a)
 
 class HTML2Text(sgmllib.SGMLParser):
 
-    from htmlentitydefs import entitydefs  # replace entitydefs from sgmllib
+    from html.entities import entitydefs  # replace entitydefs from sgmllib
 
     def __init__(self, ignore_tags=(), indent_width=4, page_width=80):
         sgmllib.SGMLParser.__init__(self)

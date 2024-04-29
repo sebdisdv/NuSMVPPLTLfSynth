@@ -54,12 +54,33 @@
 #include "nusmv/core/enc/enc.h"
 #include "nusmv/core/compile/compile.h" /* to check for presence of compassion */
 
+
+// For pre image computation
+#include "nusmv/core/fsm/bdd/BddFsm.h"
+#include "nusmv/core/fsm/bdd/bdd.h"
+#include "nusmv/core/fsm/bdd/bddInt.h"
+#include "nusmv/core/fsm/bdd/BddFsm_private.h"
+
+#include "nusmv/core/enc/operators.h"
+
+//For computing execution time
+
+#include <time.h>
+
 /*---------------------------------------------------------------------------*/
 /* Variable declarations                                                     */
 /*---------------------------------------------------------------------------*/
 extern cmp_struct_ptr cmps;
 
+extern BddVarSet_ptr controllable;
+extern BddVarSet_ptr notcontrollable;
+extern BddVarSet_ptr pnfvars;
+
+
+
 int CommandCheckLtlSpec(NuSMVEnv_ptr env, int argc, char** argv);
+
+int CommandCheckRealizability(NuSMVEnv_ptr env, int argc, char** argv);
 
 /*---------------------------------------------------------------------------*/
 /* Static function prototypes                                                */
@@ -72,8 +93,114 @@ static int UsageCheckLtlSpec(const NuSMVEnv_ptr env);
 
 void Ltl_Init(NuSMVEnv_ptr env)
 {
-  Cmd_CommandAdd(env, "check_ltlspec", CommandCheckLtlSpec, 0, false);
+  Cmd_CommandAdd(env, "check_ltlspec", CommandCheckLtlSpec, 0, false); 
+  Cmd_CommandAdd(env, "check_realizability", CommandCheckRealizability, 0, false);
 }
+
+boolean Realizable(NuSMVEnv_ptr env, BddFsm_ptr fsm, bdd_ptr property)
+{
+  bdd_ptr initial = Nil,  check_condition = Nil, old_bf = Nil, bf = Nil, notbf = Nil, tmp = Nil;
+ 
+  int step = 0;
+  boolean realizable = false;
+
+  initial = BddFsm_get_init(fsm);
+
+  //printf("initial\n");
+  //dd_printminterm(fsm->dd, initial);
+  
+  
+
+  bf = bdd_dup(property);
+
+  old_bf = bdd_false(fsm->dd);
+
+  while (old_bf != bf && !realizable)
+  {
+    printf("Step %d\n", step);
+    step++;
+
+    bdd_free(fsm->dd, old_bf);
+    old_bf = bf;
+    
+
+    
+   // bf = BddFsm_get_strong_pre_image_fa_ncontr_ex_contr_ex_pnf(fsm, old_bf); // strong preimage
+    bf = BddFsm_get_strong_pre_image_ex_contr_fa_ncontr_ex_pnf(fsm, old_bf);
+    
+    //printf("bf\n");
+    //dd_printminterm(fsm->dd, bf);
+
+    bdd_or_accumulate(fsm->dd, &bf, old_bf);
+
+    //printf("bf\n");
+    //dd_printminterm(fsm->dd, bf);
+
+
+    notbf = bdd_not(fsm->dd, bf);
+
+    //printf("NOTbf\n");
+    //dd_printminterm(fsm->dd, notbf);
+
+    check_condition = bdd_and(fsm->dd, notbf, initial);
+
+    
+
+    //printf("check cond\n");
+    //dd_printminterm(fsm->dd, check_condition);
+
+
+    if (bdd_is_false(fsm->dd, check_condition))
+    {
+      realizable = true;
+    }
+
+    bdd_free(fsm->dd, notbf);
+    bdd_free(fsm->dd, check_condition);
+  }
+
+  bdd_free(fsm->dd, old_bf);
+  bdd_free(fsm->dd, bf);
+  bdd_free(fsm->dd, initial);
+
+  return realizable;
+}
+
+int CommandCheckRealizability(NuSMVEnv_ptr env, int argc, char** argv){
+
+  BddFsm_ptr fsm = BDD_FSM(NuSMVEnv_get_value(env, ENV_BDD_FSM));
+  node_ptr toplevel = (node_ptr)NuSMVEnv_get_value(env, ENV_REALIZABLE);
+  bdd_ptr property;
+  time_t start, end;
+  
+  
+  
+  double diff_time;
+
+  property = BddEnc_expr_to_bdd(fsm->enc, toplevel, Nil);
+  
+  //dd_printminterm(fsm->dd, property);
+  
+
+  
+  time(&start);
+  if (Realizable(env, fsm, property)){
+    printf("realizable\n");
+  }
+  else{
+    printf("unrealizable\n");
+  }
+  time(&end);
+
+  diff_time = difftime(end, start);
+
+  printf("Execution time %f\n", diff_time);
+
+  return 0;
+}
+
+
+
 
 /*!
   \command{check_ltlspec} Performs LTL model checking
@@ -114,7 +241,7 @@ void Ltl_Init(NuSMVEnv_ptr env)
 
 */
 
-int CommandCheckLtlSpec(NuSMVEnv_ptr env, int argc, char** argv)
+int CommandCheckLtlSpec(NuSMVEnv_ptr env, int argc, char** argv) // simile a un main
 {
   const StreamMgr_ptr streams =
     STREAM_MGR(NuSMVEnv_get_value(env, ENV_STREAM_MANAGER));

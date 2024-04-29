@@ -38,7 +38,7 @@ for name in args:
     with open(name) as src:
         data[basename] = src.read()
 
-for key in sorted(d.iterkeys(), reverse=True):
+for key in sorted(d.keys(), reverse=True):
     is_top = val(os.path.splitext(key)[1]) is None
     parts = sorted(d[key])
     out = []

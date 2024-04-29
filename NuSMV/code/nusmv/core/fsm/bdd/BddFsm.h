@@ -1228,4 +1228,15 @@ enum BddFsmTransPrinterFormat*
 BddFsm_trans_printer_get_avail_formats(size_t* num);
 
 
+// New strong pre images
+
+// for all notcontrollable, exist controllable, exist pnf
+BddStatesInputs BddFsm_get_strong_pre_image_fa_ncontr_ex_contr_ex_pnf(const BddFsm_ptr self,
+                                                 BddStates states);
+
+// exist controllable, for all notcontrollable,  exist pnf
+BddStatesInputs BddFsm_get_strong_pre_image_ex_contr_fa_ncontr_ex_pnf(const BddFsm_ptr self,
+                                                 BddStates states);                                                
+
+
 #endif /* __NUSMV_CORE_FSM_BDD_BDD_FSM_H__ */

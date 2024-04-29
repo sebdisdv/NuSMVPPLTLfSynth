@@ -64,7 +64,6 @@
    class.
 */
 
-
 #include "nusmv/core/compile/compileInt.h"
 #include "nusmv/core/compile/FlatHierarchy.h"
 #include "nusmv/core/compile/symb_table/SymbTable.h"
@@ -97,7 +96,6 @@
 #include "nusmv/core/prop/PropDb.h"
 #include "nusmv/core/cinit/cinit.h"
 
-
 /*---------------------------------------------------------------------------*/
 /* Macro declarations                                                        */
 /*---------------------------------------------------------------------------*/
@@ -110,7 +108,7 @@
 
   \sa Flatten_GetDefinition
 */
-#define BUILDING_FLAT_BODY (node_ptr)-11
+#define BUILDING_FLAT_BODY (node_ptr) - 11
 
 #include "nusmv/core/compile/flattening/MasterCompileFlattener.h"
 
@@ -123,7 +121,8 @@
 
   \todo Missing description
 */
-typedef enum {
+typedef enum
+{
   Get_Definition_Mode,
   Expand_Definition_Mode
 } Definition_Mode_Type;
@@ -133,12 +132,13 @@ typedef enum {
 
   A utility used by internal clean up code for hash tables
 */
-#define FREE_HASH(hash)                         \
-  {                                             \
-    if (hash != (hash_ptr) NULL) {              \
-      free_assoc(hash);                         \
-      hash = (hash_ptr) NULL;                   \
-    }                                           \
+#define FREE_HASH(hash)         \
+  {                             \
+    if (hash != (hash_ptr)NULL) \
+    {                           \
+      free_assoc(hash);         \
+      hash = (hash_ptr)NULL;    \
+    }                           \
   }
 
 /*!
@@ -167,7 +167,7 @@ typedef enum {
 
   \todo Missing description
 */
-#define ENV_MODULE_HASH     "compile_module_hash"
+#define ENV_MODULE_HASH "compile_module_hash"
 
 /*!
   \brief \todo Missing synopsis
@@ -181,10 +181,10 @@ typedef enum {
 
   \todo Missing description
 */
-#define ENV_SET_INT(env, key, val)                                      \
-  {                                                                     \
-    nusmv_assert(-5 != val);                                            \
-    NuSMVEnv_set_or_replace_value(env, key, NODE_FROM_INT(val + 5));    \
+#define ENV_SET_INT(env, key, val)                                   \
+  {                                                                  \
+    nusmv_assert(-5 != val);                                         \
+    NuSMVEnv_set_or_replace_value(env, key, NODE_FROM_INT(val + 5)); \
   }
 
 /*!
@@ -192,7 +192,7 @@ typedef enum {
 
   \todo Missing description
 */
-#define ENV_GET_INT(env, key)                           \
+#define ENV_GET_INT(env, key) \
   (NODE_TO_INT(NuSMVEnv_get_value(env, key)) - 5)
 
 /*---------------------------------------------------------------------------*/
@@ -207,36 +207,41 @@ typedef enum {
    instantiation of state variables or input variables.]
 
 ******************************************************************************/
-static void set_variable_instantiation_to_input (const NuSMVEnv_ptr env) {
+static void set_variable_instantiation_to_input(const NuSMVEnv_ptr env)
+{
   ENV_SET_INT(env, ENV_VARIABLE_INSTANTIATE_MODE,
               Input_Variables_Instantiation_Mode);
 }
 
-static void set_variable_instantiation_to_state (const NuSMVEnv_ptr env) {
+static void set_variable_instantiation_to_state(const NuSMVEnv_ptr env)
+{
   ENV_SET_INT(env, ENV_VARIABLE_INSTANTIATE_MODE,
               State_Variables_Instantiation_Mode);
 }
 
-static void set_variable_instantiation_to_frozen (const NuSMVEnv_ptr env) {
+static void set_variable_instantiation_to_frozen(const NuSMVEnv_ptr env)
+{
   ENV_SET_INT(env, ENV_VARIABLE_INSTANTIATE_MODE,
               Frozen_Variables_Instantiation_Mode);
 }
 
-static void set_function_instantiation_to_frozen (const NuSMVEnv_ptr env) {
+static void set_function_instantiation_to_frozen(const NuSMVEnv_ptr env)
+{
   ENV_SET_INT(env, ENV_FUNCTION_INSTANTIATE_MODE,
               Frozen_Functions_Instantiation_Mode);
 }
 
-static void set_function_instantiation_to_state (const NuSMVEnv_ptr env) {
+static void set_function_instantiation_to_state(const NuSMVEnv_ptr env)
+{
   ENV_SET_INT(env, ENV_FUNCTION_INSTANTIATE_MODE,
               State_Functions_Instantiation_Mode);
 }
 
-
 static Instantiation_Variables_Mode_Type
 variable_instantiation_mode_get(const NuSMVEnv_ptr env)
 {
-  if (!NuSMVEnv_has_value(env, ENV_VARIABLE_INSTANTIATE_MODE)) {
+  if (!NuSMVEnv_has_value(env, ENV_VARIABLE_INSTANTIATE_MODE))
+  {
     /* return the default value */
     return State_Variables_Instantiation_Mode;
   }
@@ -246,7 +251,8 @@ variable_instantiation_mode_get(const NuSMVEnv_ptr env)
 static Instantiation_Functions_Mode_Type
 function_instantiation_mode_get(const NuSMVEnv_ptr env)
 {
-  if (!NuSMVEnv_has_value(env, ENV_FUNCTION_INSTANTIATE_MODE)) {
+  if (!NuSMVEnv_has_value(env, ENV_FUNCTION_INSTANTIATE_MODE))
+  {
     /* return the default value */
     return Frozen_Functions_Instantiation_Mode;
   }
@@ -264,7 +270,6 @@ static void set_function_instantiation_mode(const NuSMVEnv_ptr env,
 {
   ENV_SET_INT(env, ENV_FUNCTION_INSTANTIATE_MODE, type);
 }
-
 
 /**Variable********************************************************************
 
@@ -288,7 +293,7 @@ void insert_module_hash(const NuSMVEnv_ptr env, node_ptr x, node_ptr y)
 node_ptr lookup_module_hash(const NuSMVEnv_ptr env, node_ptr x)
 {
   hash_ptr module_hash = (hash_ptr)NuSMVEnv_get_value(env, ENV_MODULE_HASH);
-  return(find_assoc(module_hash, x));
+  return (find_assoc(module_hash, x));
 }
 
 static void init_module_hash(const NuSMVEnv_ptr env)
@@ -304,14 +309,15 @@ static void init_module_hash(const NuSMVEnv_ptr env)
   NuSMVEnv_set_value(env, ENV_MODULE_HASH, module_hash);
 
   m = parsed_tree;
-  while (m != Nil) {
+  while (m != Nil)
+  {
     node_ptr cur_module = car(m);
-    if (Nil != cur_module && node_get_type(cur_module) == MODULE) {
+    if (Nil != cur_module && node_get_type(cur_module) == MODULE)
+    {
       CompileFlatten_hash_module(env, cur_module);
     }
     m = cdr(m);
   }
-
 }
 
 static void clear_module_hash(const NuSMVEnv_ptr env)
@@ -319,7 +325,6 @@ static void clear_module_hash(const NuSMVEnv_ptr env)
   hash_ptr module_hash = (hash_ptr)NuSMVEnv_remove_value(env, ENV_MODULE_HASH);
   FREE_HASH(module_hash);
 }
-
 
 /**Variable********************************************************************
 
@@ -347,7 +352,7 @@ static node_ptr lookup_flatten_def_hash(const NuSMVEnv_ptr env,
                                         node_ptr key)
 {
   hash_ptr flatten_def_hash = (hash_ptr)NuSMVEnv_get_value(env, ENV_FLATTEN_DEF_HASH);
-  return((node_ptr)find_assoc(flatten_def_hash, key));
+  return ((node_ptr)find_assoc(flatten_def_hash, key));
 }
 
 #if 0
@@ -367,9 +372,10 @@ static assoc_retval flatten_def_hash_free(char *key, char *data, char * arg)
 static void clear_flatten_def_hash(const NuSMVEnv_ptr env)
 {
 
-  if (NuSMVEnv_has_value(env, ENV_FLATTEN_DEF_HASH)) {
+  if (NuSMVEnv_has_value(env, ENV_FLATTEN_DEF_HASH))
+  {
     hash_ptr flatten_def_hash =
-      (hash_ptr)NuSMVEnv_remove_value(env, ENV_FLATTEN_DEF_HASH);
+        (hash_ptr)NuSMVEnv_remove_value(env, ENV_FLATTEN_DEF_HASH);
 
     /* This was commented out, as this table contains values shared
        among different keys, and some of those values may be
@@ -381,7 +387,6 @@ static void clear_flatten_def_hash(const NuSMVEnv_ptr env)
     free_assoc(flatten_def_hash);
   }
 }
-
 
 /**Variable********************************************************************
 
@@ -399,7 +404,6 @@ static void clear_flatten_def_hash(const NuSMVEnv_ptr env)
 */
 #define ENV_MODULE_STACK "module_stack"
 
-
 /*---------------------------------------------------------------------------*/
 /* Static function prototypes                                                */
 /*---------------------------------------------------------------------------*/
@@ -410,7 +414,7 @@ compile_instantiate(const NuSMVEnv_ptr env,
                     node_ptr,
                     node_ptr,
                     node_ptr,
-                    node_ptr*,
+                    node_ptr *,
                     FlatHierarchy_ptr,
                     HrcNode_ptr,
                     hash_ptr,
@@ -433,7 +437,7 @@ compile_instantiate_var(const NuSMVEnv_ptr env,
                         node_ptr,
                         node_ptr,
                         node_ptr,
-                        node_ptr*,
+                        node_ptr *,
                         FlatHierarchy_ptr,
                         HrcNode_ptr,
                         hash_ptr,
@@ -445,7 +449,7 @@ compile_instantiate_vars(const NuSMVEnv_ptr env,
                          node_ptr *, FlatHierarchy_ptr, HrcNode_ptr,
                          hash_ptr, boolean);
 
-static node_ptr put_in_context(node_ptr, void*);
+static node_ptr put_in_context(node_ptr, void *);
 
 static node_ptr
 compileFlattenProcess(const NuSMVEnv_ptr env,
@@ -478,15 +482,14 @@ flatten_declare_constants_within_list(SymbTable_ptr symb_table,
 
 static void resolve_range(SymbTable_ptr st,
                           node_ptr range, node_ptr context,
-                          int* low, int* high);
+                          int *low, int *high);
 
 static void
 instantiate_array_define(SymbTable_ptr st,
-                          SymbLayer_ptr layer,
-                          node_ptr name,
-                          node_ptr mod_name,
-                          node_ptr definition);
-
+                         SymbLayer_ptr layer,
+                         node_ptr name,
+                         node_ptr mod_name,
+                         node_ptr definition);
 
 static HrcNode_ptr get_hrc_root_node(HrcNode_ptr node);
 
@@ -496,13 +499,11 @@ static node_ptr
 compile_flatten_normalise_value_list(NodeMgr_ptr nodemgr,
                                      node_ptr old_value_list);
 
-
 static node_ptr
 compile_flatten_build_word_toint_ith_bit_case(const NuSMVEnv_ptr env,
                                               node_ptr wexpr,
                                               int bit,
                                               boolean is_negative);
-
 
 static void _check_supported_function_types(const NuSMVEnv_ptr env,
                                             SymbType_ptr symbolicType, node_ptr name);
@@ -512,26 +513,26 @@ static void _check_supported_function_types(const NuSMVEnv_ptr env,
 /*---------------------------------------------------------------------------*/
 
 FlatHierarchy_ptr Compile_FlattenHierarchy(
-  const NuSMVEnv_ptr env,
-  const SymbTable_ptr symb_table,
-  SymbLayer_ptr layer, /* the symbolic layer to flat */
-  node_ptr module_name,  /* the <code>ATOM</code> representing the
-                            name of the module being instantiated at
-                            the top of the hierarchy. */
-  node_ptr inst_name, /* the name of the module instance
-                         at the top of the hierarchy. */
-  node_ptr actual, /* the actual module arguments */
-  boolean create_process_variables, /* enables creation of process variables */
-  boolean calc_vars_constr, /* triggers calc of vars constr, or delays it */
-  boolean expand_bounded_arrays, /* enable bounded arrays expansion option */
-  HrcNode_ptr hrc_result /* hrc node to be populated*/ )
+    const NuSMVEnv_ptr env,
+    const SymbTable_ptr symb_table,
+    SymbLayer_ptr layer,              /* the symbolic layer to flat */
+    node_ptr module_name,             /* the <code>ATOM</code> representing the
+                                         name of the module being instantiated at
+                                         the top of the hierarchy. */
+    node_ptr inst_name,               /* the name of the module instance
+                                         at the top of the hierarchy. */
+    node_ptr actual,                  /* the actual module arguments */
+    boolean create_process_variables, /* enables creation of process variables */
+    boolean calc_vars_constr,         /* triggers calc of vars constr, or delays it */
+    boolean expand_bounded_arrays,    /* enable bounded arrays expansion option */
+    HrcNode_ptr hrc_result /* hrc node to be populated*/)
 {
   const StreamMgr_ptr streams =
-    STREAM_MGR(NuSMVEnv_get_value(env, ENV_STREAM_MANAGER));
+      STREAM_MGR(NuSMVEnv_get_value(env, ENV_STREAM_MANAGER));
   const NodeMgr_ptr nodemgr =
-    NODE_MGR(NuSMVEnv_get_value(env, ENV_NODE_MGR));
+      NODE_MGR(NuSMVEnv_get_value(env, ENV_NODE_MGR));
   const ErrorMgr_ptr errmgr =
-    ERROR_MGR(NuSMVEnv_get_value(env, ENV_ERROR_MANAGER));
+      ERROR_MGR(NuSMVEnv_get_value(env, ENV_ERROR_MANAGER));
   FlatHierarchy_ptr result = FlatHierarchy_create(symb_table);
 
   /* Take care of redefinitions of module instances. */
@@ -540,9 +541,11 @@ FlatHierarchy_ptr Compile_FlattenHierarchy(
   /* creation of hrc structure */
   /* warning The way hrc structure is instantiated is still not definitive so
      the instantiation part of hrc will be refactored in a later time. */
-  if (HRC_NODE(NULL) != hrc_result) {
+  if (HRC_NODE(NULL) != hrc_result)
+  {
     node_ptr mod_def = lookup_module_hash(env, find_atom(nodemgr, module_name));
-    if (NODE_PTR(Nil) == mod_def) {
+    if (NODE_PTR(Nil) == mod_def)
+    {
       ErrorMgr_error_undefined(errmgr, module_name); /* The module is undefined */
     }
 
@@ -551,7 +554,6 @@ FlatHierarchy_ptr Compile_FlattenHierarchy(
     HrcNode_set_name(hrc_result, module_name);
     HrcNode_set_instance_name(hrc_result, inst_name);
   }
-
 
   /* collect all the constructs of a hierarchy */
   Compile_ConstructHierarchy(env, symb_table, layer, module_name,
@@ -563,21 +565,24 @@ FlatHierarchy_ptr Compile_FlattenHierarchy(
                            create_process_variables,
                            calc_vars_constr);
 
-  if (FlatHierarchy_get_compassion(result) != Nil) {
+  if (FlatHierarchy_get_compassion(result) != Nil)
+  {
     StreamMgr_print_output(streams,
-      "WARNING *** The model contains COMPASSION declarations.        ***\n"
-      "WARNING *** Full fairness is not yet fully supported in NuSMV. ***\n"
-      "WARNING *** Currently, COMPASSION declarations are only        ***\n"
-      "WARNING *** supported for BDD-based LTL Model Checking.        ***\n"
-      "WARNING *** Results of CTL Model Checking and of Bounded       ***\n"
-      "WARNING *** Model Checking may be wrong.                       ***\n");
+                           "WARNING *** The model contains COMPASSION declarations.        ***\n"
+                           "WARNING *** Full fairness is not yet fully supported in NuSMV. ***\n"
+                           "WARNING *** Currently, COMPASSION declarations are only        ***\n"
+                           "WARNING *** supported for BDD-based LTL Model Checking.        ***\n"
+                           "WARNING *** Results of CTL Model Checking and of Bounded       ***\n"
+                           "WARNING *** Model Checking may be wrong.                       ***\n");
   }
 
-  if (HRC_NODE(NULL) != hrc_result) {
-    if (HrcNode_get_undef(hrc_result) != (void*)NULL) {
+  if (HRC_NODE(NULL) != hrc_result)
+  {
+    if (HrcNode_get_undef(hrc_result) != (void *)NULL)
+    {
       StreamMgr_print_output(streams,
-              "WARNING *** The model contains PROCESSes or ISAs. ***\n"
-              "WARNING *** The HRC hierarchy will not be usable. ***\n");
+                             "WARNING *** The model contains PROCESSes or ISAs. ***\n"
+                             "WARNING *** The HRC hierarchy will not be usable. ***\n");
     }
   }
 
@@ -585,23 +590,22 @@ FlatHierarchy_ptr Compile_FlattenHierarchy(
   return result;
 }
 
-void
-Compile_ConstructHierarchy(
-  const NuSMVEnv_ptr env,
-  SymbTable_ptr st, /* the symbol table the layer belongs to */
-  SymbLayer_ptr layer, /* the layer that must be filled in by the flattening */
-  node_ptr module_name, /* the <code>ATOM</code> representing the name of the
-                           module being instantiated */
-  node_ptr instance_name, /* the name of the module instance to be
-                             instantiated */
-  node_ptr actual, /* the actual module arguments */
-  FlatHierarchy_ptr result,
-  HrcNode_ptr hrc_result,
-  hash_ptr instances,
-  boolean expand_bounded_arrays)
+void Compile_ConstructHierarchy(
+    const NuSMVEnv_ptr env,
+    SymbTable_ptr st,       /* the symbol table the layer belongs to */
+    SymbLayer_ptr layer,    /* the layer that must be filled in by the flattening */
+    node_ptr module_name,   /* the <code>ATOM</code> representing the name of the
+                               module being instantiated */
+    node_ptr instance_name, /* the name of the module instance to be
+                               instantiated */
+    node_ptr actual,        /* the actual module arguments */
+    FlatHierarchy_ptr result,
+    HrcNode_ptr hrc_result,
+    hash_ptr instances,
+    boolean expand_bounded_arrays)
 {
   const NodeMgr_ptr nodemgr =
-    NODE_MGR(NuSMVEnv_get_value(env, ENV_NODE_MGR));
+      NODE_MGR(NuSMVEnv_get_value(env, ENV_NODE_MGR));
 
   node_ptr tmp_assign = Nil;
   compile_instantiate_by_name(env, st, layer, module_name, instance_name, actual,
@@ -623,13 +627,13 @@ void Compile_ProcessHierarchy(const NuSMVEnv_ptr env,
                               boolean calc_vars_constr)
 {
   const StreamMgr_ptr streams =
-    STREAM_MGR(NuSMVEnv_get_value(env, ENV_STREAM_MANAGER));
+      STREAM_MGR(NuSMVEnv_get_value(env, ENV_STREAM_MANAGER));
   const ErrorMgr_ptr errmgr =
-    ERROR_MGR(NuSMVEnv_get_value(env, ENV_ERROR_MANAGER));
+      ERROR_MGR(NuSMVEnv_get_value(env, ENV_ERROR_MANAGER));
   const OptsHandler_ptr opts =
-    OPTS_HANDLER(NuSMVEnv_get_value(env, ENV_OPTS_HANDLER));
+      OPTS_HANDLER(NuSMVEnv_get_value(env, ENV_OPTS_HANDLER));
   const NodeMgr_ptr nodemgr =
-    NODE_MGR(NuSMVEnv_get_value(env, ENV_NODE_MGR));
+      NODE_MGR(NuSMVEnv_get_value(env, ENV_NODE_MGR));
 
   node_ptr tmp;
 
@@ -642,7 +646,8 @@ void Compile_ProcessHierarchy(const NuSMVEnv_ptr env,
   /* Create process_selector variables and running defines (if required at all)
      (this must be done before flattening processes and type checking).
   */
-  if (create_process_variables) { /* 'map' is used to get all process names */
+  if (create_process_variables)
+  { /* 'map' is used to get all process names */
     tmp = map(nodemgr, car, FlatHierarchy_get_assign(hierarchy));
     create_process_symbolic_variables(env, symb_table, layer, tmp);
     /* do not free tmp, it is used to construct the type and saved there */
@@ -676,26 +681,25 @@ void Compile_ProcessHierarchy(const NuSMVEnv_ptr env,
                             name);
   FlatHierarchy_set_compassion(hierarchy, tmp);
 
-
   /* The SPEC, LTLSPEC, PSLSPEC, INVAR_SPEC, COMPUTE properties are
      simply reversed but NOT flattened. */
 
   /* RC: comments below are experiments to handle nested relative contexts */
   tmp = reverse(FlatHierarchy_get_spec(hierarchy));
-  FlatHierarchy_set_spec(hierarchy, tmp/*compile_fix_nested_context(tmp)*/);
+  FlatHierarchy_set_spec(hierarchy, tmp /*compile_fix_nested_context(tmp)*/);
 
   tmp = reverse(FlatHierarchy_get_ltlspec(hierarchy));
-  FlatHierarchy_set_ltlspec(hierarchy, tmp/*compile_fix_nested_context(tmp)*/);
+  FlatHierarchy_set_ltlspec(hierarchy, tmp /*compile_fix_nested_context(tmp)*/);
 
   tmp = reverse(FlatHierarchy_get_invarspec(hierarchy));
   FlatHierarchy_set_invarspec(hierarchy,
-                              tmp/*compile_fix_nested_context(tmp)*/);
+                              tmp /*compile_fix_nested_context(tmp)*/);
 
   tmp = reverse(FlatHierarchy_get_pslspec(hierarchy));
-  FlatHierarchy_set_pslspec(hierarchy, tmp/*compile_fix_nested_context(tmp)*/);
+  FlatHierarchy_set_pslspec(hierarchy, tmp /*compile_fix_nested_context(tmp)*/);
 
   tmp = reverse(FlatHierarchy_get_compute(hierarchy));
-  FlatHierarchy_set_compute(hierarchy, tmp/*compile_fix_nested_context(tmp)*/);
+  FlatHierarchy_set_compute(hierarchy, tmp /*compile_fix_nested_context(tmp)*/);
 
   tmp = reverse(FlatHierarchy_get_property_patterns(hierarchy));
   FlatHierarchy_set_property_patterns(hierarchy, tmp);
@@ -715,17 +719,20 @@ void Compile_ProcessHierarchy(const NuSMVEnv_ptr env,
 
   /* --- 4 ---- */
   /* creation of association between vars and constraints */
-  if (calc_vars_constr) {
+  if (calc_vars_constr)
+  {
     /* triggers the calculation of vars constrains */
     FlatHierarchy_calculate_vars_constrains(hierarchy);
   }
 
   /* --- 5 (optional) ---- */
-  if (opt_syntactic_checks_disabled(opts)) {
+  if (opt_syntactic_checks_disabled(opts))
+  {
     StreamMgr_print_output(streams,
-            "WARNING *** Input model well-formance check skipped ***\n");
+                           "WARNING *** Input model well-formance check skipped ***\n");
   }
-  else {
+  else
+  {
     /* checks next operator in all the hierarchy */
     Compile_check_next(symb_table, FlatHierarchy_get_init(hierarchy), Nil,
                        false);
@@ -754,7 +761,8 @@ void Compile_ProcessHierarchy(const NuSMVEnv_ptr env,
     {
       SymbTableIter iter;
 
-      SYMB_TABLE_FOREACH(symb_table, iter, STT_DEFINE | STT_ARRAY_DEFINE) {
+      SYMB_TABLE_FOREACH(symb_table, iter, STT_DEFINE | STT_ARRAY_DEFINE)
+      {
         node_ptr define = SymbTable_iter_get_symbol(symb_table, &iter);
         Compile_check_next(symb_table, define, Nil, true);
         Compile_check_input_next(symb_table, define, Nil);
@@ -767,23 +775,24 @@ void Compile_ProcessHierarchy(const NuSMVEnv_ptr env,
     {
       boolean isOk = true;
       isOk =
-        isOk &&
-        TypeChecker_check_layer(SymbTable_get_type_checker(symb_table), layer);
+          isOk &&
+          TypeChecker_check_layer(SymbTable_get_type_checker(symb_table), layer);
 
       /* get rid of module names */
       tmp = map(nodemgr, cdr, FlatHierarchy_get_assign(hierarchy));
 
       isOk = isOk && TypeChecker_check_constrains(
-                                 SymbTable_get_type_checker(symb_table),
-                                 FlatHierarchy_get_init(hierarchy),
-                                 FlatHierarchy_get_trans(hierarchy),
-                                 FlatHierarchy_get_invar(hierarchy),
-                                 tmp,
-                                 FlatHierarchy_get_justice(hierarchy),
-                                 FlatHierarchy_get_compassion(hierarchy));
+                         SymbTable_get_type_checker(symb_table),
+                         FlatHierarchy_get_init(hierarchy),
+                         FlatHierarchy_get_trans(hierarchy),
+                         FlatHierarchy_get_invar(hierarchy),
+                         tmp,
+                         FlatHierarchy_get_justice(hierarchy),
+                         FlatHierarchy_get_compassion(hierarchy));
       free_list(nodemgr, tmp);
 
-      if (!isOk) ErrorMgr_error_type_system_violation(errmgr); /* error */
+      if (!isOk)
+        ErrorMgr_error_type_system_violation(errmgr); /* error */
     }
 
     /* --- 7 ---- */
@@ -792,7 +801,8 @@ void Compile_ProcessHierarchy(const NuSMVEnv_ptr env,
        So the input variables check and check of cycle dependencies of
        assignments may be skipped.
     */
-    if (create_process_variables) {
+    if (create_process_variables)
+    {
       compileCheckForInputVars(symb_table, hierarchy);
 
       Compile_CheckAssigns(symb_table, FlatHierarchy_get_assign(hierarchy));
@@ -805,16 +815,17 @@ node_ptr Compile_FlattenSexp(const SymbTable_ptr symb_table, node_ptr sexp,
 {
   const NuSMVEnv_ptr env = EnvObject_get_environment(ENV_OBJECT(symb_table));
   const ErrorMgr_ptr errmgr =
-    ERROR_MGR(NuSMVEnv_get_value(env, ENV_ERROR_MANAGER));
+      ERROR_MGR(NuSMVEnv_get_value(env, ENV_ERROR_MANAGER));
   node_ptr result;
 
-  CATCH(errmgr) {
+  CATCH(errmgr)
+  {
     MasterCompileFlattener_ptr flattener =
         MASTER_COMPILE_FLATTENER(NuSMVEnv_get_value(env, ENV_FLATTENER));
     result = MasterCompileFlattener_flatten(flattener, symb_table, sexp, context);
-
   }
-  FAIL(errmgr) {
+  FAIL(errmgr)
+  {
     ErrorMgr_rpterr(errmgr, NULL); /* rethrow */
   }
 
@@ -827,27 +838,26 @@ Compile_FlattenSexpExpandDefine(const SymbTable_ptr symb_table,
 {
   const NuSMVEnv_ptr env = EnvObject_get_environment(ENV_OBJECT(symb_table));
   const ErrorMgr_ptr errmgr =
-    ERROR_MGR(NuSMVEnv_get_value(env, ENV_ERROR_MANAGER));
+      ERROR_MGR(NuSMVEnv_get_value(env, ENV_ERROR_MANAGER));
 
   node_ptr result;
 
-
-  CATCH(errmgr) {
+  CATCH(errmgr)
+  {
     MasterCompileFlattener_ptr flattener =
         MASTER_COMPILE_FLATTENER(NuSMVEnv_get_value(env, ENV_FLATTENER));
     result = MasterCompileFlattener_flatten_expand_define(flattener,
                                                           symb_table,
                                                           sexp,
                                                           context);
-
   }
-  FAIL(errmgr) {
+  FAIL(errmgr)
+  {
     ErrorMgr_rpterr(errmgr, NULL); /* rethrow */
   }
 
   return result;
 }
-
 
 /*!
   \brief Gets the flattened version of an atom.
@@ -866,14 +876,16 @@ node_ptr Flatten_GetDefinition(const SymbTable_ptr symb_table, node_ptr atom,
 {
   const NuSMVEnv_ptr env = EnvObject_get_environment(ENV_OBJECT(symb_table));
   MasterCompileFlattener_ptr flattener =
-    MASTER_COMPILE_FLATTENER(NuSMVEnv_get_value(env, ENV_FLATTENER));
+      MASTER_COMPILE_FLATTENER(NuSMVEnv_get_value(env, ENV_FLATTENER));
   MasterCompileFlattener_def_mode mode;
   node_ptr result = Nil;
 
-  if (expand_defines) {
+  if (expand_defines)
+  {
     mode = Flattener_Expand_Def_Mode;
   }
-  else {
+  else
+  {
     mode = Flattener_Get_Def_Mode;
   }
 
@@ -887,24 +899,28 @@ node_ptr CompileFlatten_concat_contexts(const NuSMVEnv_ptr env,
                                         node_ptr ctx1, node_ptr ctx2)
 {
   const NodeMgr_ptr nodemgr =
-    NODE_MGR(NuSMVEnv_get_value(env, ENV_NODE_MGR));
+      NODE_MGR(NuSMVEnv_get_value(env, ENV_NODE_MGR));
   const MasterNormalizer_ptr normalizer =
-    MASTER_NORMALIZER(NuSMVEnv_get_value(env, ENV_NODE_NORMALIZER));
+      MASTER_NORMALIZER(NuSMVEnv_get_value(env, ENV_NODE_NORMALIZER));
 
   int op;
-  if (ctx2 == Nil) return MasterNormalizer_normalize_node(normalizer, ctx1);
+  if (ctx2 == Nil)
+    return MasterNormalizer_normalize_node(normalizer, ctx1);
 
   op = node_get_type(ctx2);
-  if (op == DOT && car(ctx2) == Nil) {
+  if (op == DOT && car(ctx2) == Nil)
+  {
     return MasterNormalizer_normalize_node(normalizer, find_node(nodemgr, DOT, ctx1, cdr(ctx2)));
   }
 
   if (op == ATOM ||
-      op == NUMBER) {
+      op == NUMBER)
+  {
     return MasterNormalizer_normalize_node(normalizer, find_node(nodemgr, DOT, ctx1, ctx2));
   }
 
-  if (op == BIT) {
+  if (op == BIT)
+  {
     return find_node(nodemgr, BIT,
                      CompileFlatten_concat_contexts(env, ctx1, car(ctx2)),
                      cdr(ctx2));
@@ -923,30 +939,32 @@ void Flatten_remove_symbol_info(const NuSMVEnv_ptr env,
      This happens when the symbol table and hierarchy are built
      outside the standard NuSMV flow.
    */
-  if (NuSMVEnv_has_value(env, ENV_MODULE_HASH)) {
-    if (lookup_module_hash(env, name) != (node_ptr) NULL) {
+  if (NuSMVEnv_has_value(env, ENV_MODULE_HASH))
+  {
+    if (lookup_module_hash(env, name) != (node_ptr)NULL)
+    {
       /* TODO[MD] This is a workaround since remove_module_hash is missing */
-      insert_module_hash(env, name, (node_ptr) NULL);
+      insert_module_hash(env, name, (node_ptr)NULL);
     }
   }
 
   /* flatten def */
   MasterCompileFlattener_remove_define_info(
-        MASTER_COMPILE_FLATTENER(NuSMVEnv_get_value(env, ENV_FLATTENER)),
-        SYMB_TABLE(NuSMVEnv_get_value(env, ENV_SYMB_TABLE)),
-        name);
+      MASTER_COMPILE_FLATTENER(NuSMVEnv_get_value(env, ENV_FLATTENER)),
+      SYMB_TABLE(NuSMVEnv_get_value(env, ENV_SYMB_TABLE)),
+      name);
 }
 
 int CompileFlatten_flatten_smv(NuSMVEnv_ptr env, boolean calc_vars_constrains,
                                boolean expand_bounded_arrays)
 {
   const StreamMgr_ptr streams =
-    STREAM_MGR(NuSMVEnv_get_value(env, ENV_STREAM_MANAGER));
+      STREAM_MGR(NuSMVEnv_get_value(env, ENV_STREAM_MANAGER));
   const ErrorMgr_ptr errmgr =
-    ERROR_MGR(NuSMVEnv_get_value(env, ENV_ERROR_MANAGER));
+      ERROR_MGR(NuSMVEnv_get_value(env, ENV_ERROR_MANAGER));
   TraceMgr_ptr trace_mgr = TRACE_MGR(NuSMVEnv_get_value(env, ENV_TRACE_MGR));
   OptsHandler_ptr opt = OPTS_HANDLER(NuSMVEnv_get_value(env, ENV_OPTS_HANDLER));
-  PropDb_ptr db = (PropDb_ptr) NuSMVEnv_get_value(env, ENV_PROP_DB);
+  PropDb_ptr db = (PropDb_ptr)NuSMVEnv_get_value(env, ENV_PROP_DB);
 
   /* Initializes the flattener, that must be initialized *after* the
      parsing phase */
@@ -972,45 +990,51 @@ int CompileFlatten_flatten_smv(NuSMVEnv_ptr env, boolean calc_vars_constrains,
     /* register the new layer to the "model" layer class, and set
        the class to be the default */
     SymbTable_layer_add_to_class(st, MODEL_LAYER_NAME, MODEL_LAYERS_CLASS);
-    SymbTable_set_default_layers_class_name(st,  MODEL_LAYERS_CLASS);
+    SymbTable_set_default_layers_class_name(st, MODEL_LAYERS_CLASS);
 
     nusmv_assert(!NuSMVEnv_has_value(env, ENV_FLAT_HIERARCHY));
 
-
-    CATCH(errmgr) {
+    CATCH(errmgr)
+    {
       hierarchy = Compile_FlattenHierarchy(env, st, layer, sym_intern(env, "main"), Nil, Nil,
                                            true, calc_vars_constrains, expand_bounded_arrays,
                                            hrc_node);
     }
-    FAIL(errmgr) {
+    FAIL(errmgr)
+    {
       NuSMVCore_reset(env);
       return 1;
     }
 
     /* Processes or Isa have been found, destroy the HRC hierarchy */
-    if (hrc_node != HRC_NODE(NULL)) {
-      if ((void*) NULL != HrcNode_get_undef(hrc_node)) {
+    if (hrc_node != HRC_NODE(NULL))
+    {
+      if ((void *)NULL != HrcNode_get_undef(hrc_node))
+      {
         HrcNode_destroy_recur(hrc_node);
         NuSMVEnv_remove_value(env, ENV_HRC_HIERARCHY);
       }
     }
 
     /* We store properties in the DB of properties */
-    CATCH(errmgr) {
-    propErr = PropDb_fill(db, st,
-                          FlatHierarchy_get_spec(hierarchy),
-                          FlatHierarchy_get_compute(hierarchy),
-                          FlatHierarchy_get_ltlspec(hierarchy),
-                          FlatHierarchy_get_pslspec(hierarchy),
-                          FlatHierarchy_get_invarspec(hierarchy));
+    CATCH(errmgr)
+    {
+      propErr = PropDb_fill(db, st,
+                            FlatHierarchy_get_spec(hierarchy),
+                            FlatHierarchy_get_compute(hierarchy),
+                            FlatHierarchy_get_ltlspec(hierarchy),
+                            FlatHierarchy_get_pslspec(hierarchy),
+                            FlatHierarchy_get_invarspec(hierarchy));
     }
-    FAIL(errmgr) {
+    FAIL(errmgr)
+    {
       FlatHierarchy_destroy(hierarchy);
       SymbTable_remove_layer(st, layer);
       goto flattening_failed;
     }
 
-    if (0 != propErr) {
+    if (0 != propErr)
+    {
       /* cleans up the initialized internal structures */
       FlatHierarchy_destroy(hierarchy);
       SymbTable_remove_layer(st, layer);
@@ -1023,12 +1047,14 @@ int CompileFlatten_flatten_smv(NuSMVEnv_ptr env, boolean calc_vars_constrains,
   TraceMgr_register_layer(trace_mgr, MODEL_LAYER_NAME);
 
   /* if syntax errors have been found when parser mode is set to lax */
-  if (Parser_get_syntax_errors_list(env) != Nil) {
-    StreamMgr_print_error(streams,  "\nWarning! Syntax errors have been found, no "
-            "flattening is possible.\n");
-    StreamMgr_print_error(streams,  "However, as option '%s' is set, a partial "
-            "construction\nof the HRC was done.\n",  OPT_PARSER_IS_LAX);
-    StreamMgr_print_error(streams,  "This allows you to dump the HRC.\n");
+  if (Parser_get_syntax_errors_list(env) != Nil)
+  {
+    StreamMgr_print_error(streams, "\nWarning! Syntax errors have been found, no "
+                                   "flattening is possible.\n");
+    StreamMgr_print_error(streams, "However, as option '%s' is set, a partial "
+                                   "construction\nof the HRC was done.\n",
+                          OPT_PARSER_IS_LAX);
+    StreamMgr_print_error(streams, "This allows you to dump the HRC.\n");
     cmp_struct_set_hrc_built(cmps);
     return 0;
   }
@@ -1036,7 +1062,8 @@ int CompileFlatten_flatten_smv(NuSMVEnv_ptr env, boolean calc_vars_constrains,
   /* everything went ok */
   cmp_struct_set_hrc_built(cmps);
   cmp_struct_set_flatten_hrc(cmps);
-  if (opt_verbose_level_gt(opt, 0)) {
+  if (opt_verbose_level_gt(opt, 0))
+  {
     Logger_ptr logger = LOGGER(NuSMVEnv_get_value(env, ENV_LOGGER));
     Logger_log(logger, "...done\n");
   }
@@ -1044,11 +1071,11 @@ int CompileFlatten_flatten_smv(NuSMVEnv_ptr env, boolean calc_vars_constrains,
   return 0;
 
   /* Exception handling */
- flattening_failed:
+flattening_failed:
   PropDb_clean(db);
   CompileFlatten_quit_flattener(env);
   cmp_struct_unset_read_model(cmps); /* resets also the command read_model */
-  return 1; /* error */
+  return 1;                          /* error */
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1058,11 +1085,11 @@ int CompileFlatten_flatten_smv(NuSMVEnv_ptr env, boolean calc_vars_constrains,
 void error_bit_selection_assignment_not_supported(const NuSMVEnv_ptr env, node_ptr name)
 {
   const StreamMgr_ptr streams =
-    STREAM_MGR(NuSMVEnv_get_value(env, ENV_STREAM_MANAGER));
+      STREAM_MGR(NuSMVEnv_get_value(env, ENV_STREAM_MANAGER));
   const ErrorMgr_ptr errmgr =
-    ERROR_MGR(NuSMVEnv_get_value(env, ENV_ERROR_MANAGER));
+      ERROR_MGR(NuSMVEnv_get_value(env, ENV_ERROR_MANAGER));
   const MasterPrinter_ptr wffprint =
-    MASTER_PRINTER(NuSMVEnv_get_value(env, ENV_WFF_PRINTER));
+      MASTER_PRINTER(NuSMVEnv_get_value(env, ENV_WFF_PRINTER));
 
   /* MR: This will be removed when assignment of bit selection is
    * implemented */
@@ -1071,12 +1098,12 @@ void error_bit_selection_assignment_not_supported(const NuSMVEnv_ptr env, node_p
   nusmv_yylineno = node_get_lineno(name);
 
   ErrorMgr_start_parsing_err(errmgr);
-  StreamMgr_print_error(streams,  "Bit selection '");
+  StreamMgr_print_error(streams, "Bit selection '");
   StreamMgr_nprint_error(streams, wffprint, "%N", name);
-  StreamMgr_print_error(streams,  "':\n");
+  StreamMgr_print_error(streams, "':\n");
   StreamMgr_print_error(streams,
-          "Error: Current version does not support assignment "\
-          "of bit selections.\n");
+                        "Error: Current version does not support assignment "
+                        "of bit selections.\n");
   ErrorMgr_finish_parsing_err(errmgr);
 }
 
@@ -1084,11 +1111,11 @@ node_ptr
 compile_flatten_rewrite_word_toint_cast(const NuSMVEnv_ptr env, node_ptr body, SymbType_ptr type)
 {
   const NodeMgr_ptr nodemgr =
-    NODE_MGR(NuSMVEnv_get_value(env, ENV_NODE_MGR));
+      NODE_MGR(NuSMVEnv_get_value(env, ENV_NODE_MGR));
   const ErrorMgr_ptr errmgr =
-    ERROR_MGR(NuSMVEnv_get_value(env, ENV_ERROR_MANAGER));
+      ERROR_MGR(NuSMVEnv_get_value(env, ENV_ERROR_MANAGER));
   const WordNumberMgr_ptr words =
-    WORD_NUMBER_MGR(NuSMVEnv_get_value(env, ENV_WORD_NUMBER_MGR));
+      WORD_NUMBER_MGR(NuSMVEnv_get_value(env, ENV_WORD_NUMBER_MGR));
 
   node_ptr result = Nil;
   int width = SymbType_get_word_width(type);
@@ -1096,36 +1123,40 @@ compile_flatten_rewrite_word_toint_cast(const NuSMVEnv_ptr env, node_ptr body, S
 
   nusmv_assert(SymbType_is_word(type));
 
-
-  if (SymbType_is_unsigned_word(type)) {
+  if (SymbType_is_unsigned_word(type))
+  {
     /* Check the width of the word. For unsigned words, the limit is
        31 bits, because NuSMV ints are signed and limited to 32
        bits. */
-    if (width > 31) {
+    if (width > 31)
+    {
       ErrorMgr_error_out_of_bounds_word_toint_cast(errmgr, body);
     }
 
     result =
-      compile_flatten_build_word_toint_ith_bit_case(env, body, 0, false);
+        compile_flatten_build_word_toint_ith_bit_case(env, body, 0, false);
 
-    for (i = 1; i < width; ++i) {
+    for (i = 1; i < width; ++i)
+    {
       node_ptr tmp =
-        compile_flatten_build_word_toint_ith_bit_case(env, body, i, false);
+          compile_flatten_build_word_toint_ith_bit_case(env, body, i, false);
       result = new_node(nodemgr, PLUS, result, tmp);
     }
   }
-  else if (SymbType_is_signed_word(type)) {
+  else if (SymbType_is_signed_word(type))
+  {
     node_ptr w0 = find_node(nodemgr, NUMBER_UNSIGNED_WORD,
                             NODE_PTR(WordNumberMgr_integer_to_word_number(words, (WordNumberValue)0, 1)),
                             Nil);
-    node_ptr msb = find_node(nodemgr, NUMBER, NODE_FROM_INT(width-1), Nil);
+    node_ptr msb = find_node(nodemgr, NUMBER, NODE_FROM_INT(width - 1), Nil);
     node_ptr cond, positive, negative;
     int i;
 
     /* Check the width of the word. For unsigned words, the limit is
        32 bits, because NuSMV ints are signed and limited to 32
        bits. */
-    if (width > 32) {
+    if (width > 32)
+    {
       ErrorMgr_error_out_of_bounds_word_toint_cast(errmgr, body);
     }
 
@@ -1137,14 +1168,15 @@ compile_flatten_rewrite_word_toint_cast(const NuSMVEnv_ptr env, node_ptr body, S
 
     /* Prepare the base steps for the sum (LSB) */
     positive =
-      compile_flatten_build_word_toint_ith_bit_case(env, body, 0, false);
+        compile_flatten_build_word_toint_ith_bit_case(env, body, 0, false);
     negative =
-      compile_flatten_build_word_toint_ith_bit_case(env, body, 0, true);
+        compile_flatten_build_word_toint_ith_bit_case(env, body, 0, true);
 
     /* Sum all other bits (exept the MSB) */
-    for (i = 1; i < (width - 1); ++i) {
+    for (i = 1; i < (width - 1); ++i)
+    {
       node_ptr tmp =
-        compile_flatten_build_word_toint_ith_bit_case(env, body, i, false);
+          compile_flatten_build_word_toint_ith_bit_case(env, body, i, false);
       positive = new_node(nodemgr, PLUS, positive, tmp);
 
       tmp = compile_flatten_build_word_toint_ith_bit_case(env, body, i, true);
@@ -1198,7 +1230,7 @@ static node_ptr compileFlattenProcess(const NuSMVEnv_ptr env,
                                       FlatHierarchy_ptr flattenHierarchy)
 {
   const NodeMgr_ptr nodemgr =
-    NODE_MGR(NuSMVEnv_get_value(env, ENV_NODE_MGR));
+      NODE_MGR(NuSMVEnv_get_value(env, ENV_NODE_MGR));
   node_ptr l;
   node_ptr result = Nil;
   node_ptr running = sym_intern(env, RUNNING_SYMBOL);
@@ -1209,7 +1241,8 @@ static node_ptr compileFlattenProcess(const NuSMVEnv_ptr env,
   proc_assign_list = cons(nodemgr, car(proc_assign_list),
                           reverse_ns(nodemgr, cdr(proc_assign_list)));
 
-  for (l = proc_assign_list; l != Nil; l = cdr(l)) { /* Loops over processes */
+  for (l = proc_assign_list; l != Nil; l = cdr(l))
+  { /* Loops over processes */
     ResolveSymbol_ptr rs;
     node_ptr running_name;
 
@@ -1233,11 +1266,12 @@ node_ptr CompileFlatten_expand_range(const NuSMVEnv_ptr env,
                                      int a, int b)
 {
   const NodeMgr_ptr nodemgr =
-    NODE_MGR(NuSMVEnv_get_value(env, ENV_NODE_MGR));
+      NODE_MGR(NuSMVEnv_get_value(env, ENV_NODE_MGR));
   node_ptr res = Nil;
 
   int i;
-  for (i=b ; i>=a ; i--) {
+  for (i = b; i >= a; i--)
+  {
     res = find_node(nodemgr, CONS, find_node(nodemgr, NUMBER, NODE_FROM_INT(i), Nil), res);
   }
 
@@ -1248,7 +1282,7 @@ node_ptr CompileFlatten_normalise_value_list(const NuSMVEnv_ptr env,
                                              node_ptr old_values)
 {
   const NodeMgr_ptr nodemgr =
-    NODE_MGR(NuSMVEnv_get_value(env, ENV_NODE_MGR));
+      NODE_MGR(NuSMVEnv_get_value(env, ENV_NODE_MGR));
 
   node_ptr values = compile_flatten_normalise_value_list(nodemgr, old_values);
 
@@ -1265,16 +1299,17 @@ node_ptr CompileFlatten_resolve_number(SymbTable_ptr symb_table,
 {
   NuSMVEnv_ptr env = ENV_OBJECT_GET_ENV(symb_table);
   MasterCompileFlattener_ptr flattener =
-    MASTER_COMPILE_FLATTENER(NuSMVEnv_get_value(env, ENV_FLATTENER));
+      MASTER_COMPILE_FLATTENER(NuSMVEnv_get_value(env, ENV_FLATTENER));
 
   node_ptr num = compile_flatten_eval_number(flattener, symb_table, n,
                                              context);
 
   if (NUMBER == node_get_type(num) ||
       NUMBER_UNSIGNED_WORD == node_get_type(num) ||
-      NUMBER_SIGNED_WORD == node_get_type(num)) return num;
+      NUMBER_SIGNED_WORD == node_get_type(num))
+    return num;
 
-  return (node_ptr) NULL; /* not a number! */
+  return (node_ptr)NULL; /* not a number! */
 }
 
 node_ptr CompileFlatten_resolve_define_chains(const SymbTable_ptr symb_table,
@@ -1282,10 +1317,10 @@ node_ptr CompileFlatten_resolve_define_chains(const SymbTable_ptr symb_table,
 {
   const NuSMVEnv_ptr env = EnvObject_get_environment(ENV_OBJECT(symb_table));
   const ErrorMgr_ptr errmgr =
-    ERROR_MGR(NuSMVEnv_get_value(env, ENV_ERROR_MANAGER));
+      ERROR_MGR(NuSMVEnv_get_value(env, ENV_ERROR_MANAGER));
   const ExprMgr_ptr exprs = EXPR_MGR(NuSMVEnv_get_value(env, ENV_EXPR_MANAGER));
   const MasterPrinter_ptr wffprint =
-    MASTER_PRINTER(NuSMVEnv_get_value(env, ENV_WFF_PRINTER));
+      MASTER_PRINTER(NuSMVEnv_get_value(env, ENV_WFF_PRINTER));
 
   boolean is_it_next = false;
 
@@ -1294,18 +1329,21 @@ node_ptr CompileFlatten_resolve_define_chains(const SymbTable_ptr symb_table,
          DOT == node_get_type(expr) ||
          ARRAY == node_get_type(expr) ||
          ATOM == node_get_type(expr) ||
-         NEXT == node_get_type(expr)) {
+         NEXT == node_get_type(expr))
+  {
 
     ResolveSymbol_ptr rs;
     node_ptr resolved;
 
-    if (CONTEXT == node_get_type(expr)) {
+    if (CONTEXT == node_get_type(expr))
+    {
       expr = Compile_FlattenSexp(symb_table, expr, context);
       context = Nil;
       continue;
     }
 
-    if (NEXT == node_get_type(expr)) {
+    if (NEXT == node_get_type(expr))
+    {
       expr = car(expr);
       /* nested next ? */
       nusmv_assert(!is_it_next);
@@ -1318,10 +1356,12 @@ node_ptr CompileFlatten_resolve_define_chains(const SymbTable_ptr symb_table,
     resolved = ResolveSymbol_get_resolved_name(rs);
 
     /* expr is not identifier but expression */
-    if (ResolveSymbol_is_undefined(rs)) {
+    if (ResolveSymbol_is_undefined(rs))
+    {
       return Compile_FlattenSexp(symb_table, expr, context);
     }
-    else {
+    else
+    {
       expr = resolved;
       context = Nil;
     }
@@ -1329,7 +1369,8 @@ node_ptr CompileFlatten_resolve_define_chains(const SymbTable_ptr symb_table,
     /* if the expression is not identifier => return immediately  */
     if (!(DOT == node_get_type(expr) ||
           ARRAY == node_get_type(expr) ||
-          ATOM == node_get_type(expr))) {
+          ATOM == node_get_type(expr)))
+    {
       /* ...get_resolved_name gets rid of context */
       nusmv_assert(CONTEXT != node_get_type(expr));
       break;
@@ -1342,40 +1383,47 @@ node_ptr CompileFlatten_resolve_define_chains(const SymbTable_ptr symb_table,
        processes.
     */
     /* artificial constants (with DOT added by ResolveSymbol_resolve) */
-    if (ResolveSymbol_is_constant(rs)) {
+    if (ResolveSymbol_is_constant(rs))
+    {
       break;
     }
 
     /* a variable */
-    else if (ResolveSymbol_is_var(rs)) {
+    else if (ResolveSymbol_is_var(rs))
+    {
       break;
     }
 
     /* an array variable */
-    else if (ResolveSymbol_is_array(rs)) {
+    else if (ResolveSymbol_is_array(rs))
+    {
       break;
     }
 
     /* a function */
-    else if (ResolveSymbol_is_function(rs)) {
+    else if (ResolveSymbol_is_function(rs))
+    {
       break;
     }
 
     else if (DOT == node_get_type(expr) &&
              ATOM == node_get_type(cdr(expr)) &&
-             ResolveSymbol_is_constant(rs)) {
+             ResolveSymbol_is_constant(rs))
+    {
       expr = cdr(expr);
       is_it_next = false;
       break;
     }
 
     /* is it parameter => resolve and continue */
-    else if (ResolveSymbol_is_parameter(rs)) {
+    else if (ResolveSymbol_is_parameter(rs))
+    {
       context = SymbTable_get_actual_parameter_context(symb_table, expr);
       expr = SymbTable_get_actual_parameter(symb_table, expr);
 
       /* Flatten expression if needed */
-      if (context != Nil) {
+      if (context != Nil)
+      {
         expr = Compile_FlattenSexp(symb_table, expr, context);
         context = Nil;
       }
@@ -1384,13 +1432,15 @@ node_ptr CompileFlatten_resolve_define_chains(const SymbTable_ptr symb_table,
     }
 
     /* is it define => resolve and continue */
-    else if (ResolveSymbol_is_define(rs)) {
+    else if (ResolveSymbol_is_define(rs))
+    {
       context = SymbTable_get_define_context(symb_table, expr);
       expr = SymbTable_get_define_body(symb_table, expr);
       nusmv_assert(expr != Nil);
 
       /* Flatten expression if needed */
-      if (context != Nil) {
+      if (context != Nil)
+      {
         expr = Compile_FlattenSexp(symb_table, expr, context);
         context = Nil;
       }
@@ -1400,7 +1450,8 @@ node_ptr CompileFlatten_resolve_define_chains(const SymbTable_ptr symb_table,
 
     /* is it array define => it is not resolved because
        array expression are not yet allowed to be in arbitrary places */
-    else if (ResolveSymbol_is_array_def(rs)) {
+    else if (ResolveSymbol_is_array_def(rs))
+    {
       break;
     }
 
@@ -1409,7 +1460,8 @@ node_ptr CompileFlatten_resolve_define_chains(const SymbTable_ptr symb_table,
        d[1] is array expression but can be resolved to 2.
     */
     else if (ARRAY == node_get_type(expr) &&
-             !SymbTable_is_symbol_declared(symb_table, expr)) {
+             !SymbTable_is_symbol_declared(symb_table, expr))
+    {
       node_ptr tmp = Compile_FlattenSexp(symb_table, expr, context);
       nusmv_assert(tmp != expr); /* loop in recursion */
       expr = tmp;
@@ -1418,23 +1470,25 @@ node_ptr CompileFlatten_resolve_define_chains(const SymbTable_ptr symb_table,
       continue;
     }
 
-    else {
+    else
+    {
       /* no other id are possible */
       ErrorMgr_rpterr(errmgr, "\nUnknown (%s) identifier : %s\n",
-             SymbTable_is_symbol_declared(symb_table, expr) ?
-             "declared" : "undeclared",
-             sprint_node(wffprint, expr));
+                      SymbTable_is_symbol_declared(symb_table, expr) ? "declared" : "undeclared",
+                      sprint_node(wffprint, expr));
       error_unreachable_code();
     }
   }
 
   /* Re-add the NEXT if needed */
-  if (is_it_next) {
+  if (is_it_next)
+  {
     expr = ExprMgr_next(exprs, expr, symb_table);
   }
 
   /* If the expression is not flattened */
-  if (Nil != context) {
+  if (Nil != context)
+  {
     expr = Compile_FlattenSexp(symb_table, expr, context);
   }
 
@@ -1448,7 +1502,8 @@ void CompileFlatten_init_flattener(NuSMVEnv_ptr env)
 
   nusmv_assert(!flattener_initialized); /* not already initialized */
 
-  if (opt_verbose_level_gt(opts, 2)) {
+  if (opt_verbose_level_gt(opts, 2))
+  {
     Logger_ptr logger = LOGGER(NuSMVEnv_get_value(env, ENV_LOGGER));
     Logger_log(logger, "Initializing the flattener...\n");
   }
@@ -1461,14 +1516,16 @@ void CompileFlatten_init_flattener(NuSMVEnv_ptr env)
 void CompileFlatten_quit_flattener(NuSMVEnv_ptr env)
 {
   const NodeMgr_ptr nodemgr =
-    NODE_MGR(NuSMVEnv_get_value(env, ENV_NODE_MGR));
+      NODE_MGR(NuSMVEnv_get_value(env, ENV_NODE_MGR));
   boolean flattener_initialized = NuSMVEnv_get_flag(env, ENV_FLAG_FLATTENER_INITIALIZED);
   OptsHandler_ptr opts = OPTS_HANDLER(NuSMVEnv_get_value(env, ENV_OPTS_HANDLER));
 
   /* deinits the flattener only if previously initialized */
-  if (!flattener_initialized) return;
+  if (!flattener_initialized)
+    return;
 
-  if (opt_verbose_level_gt(opts, 3)) {
+  if (opt_verbose_level_gt(opts, 3))
+  {
     Logger_ptr logger = LOGGER(NuSMVEnv_get_value(env, ENV_LOGGER));
     Logger_log(logger, "Clearing the flattener...\n");
   }
@@ -1481,12 +1538,14 @@ void CompileFlatten_quit_flattener(NuSMVEnv_ptr env)
   /* ---------------------------------------------------------------------- */
 
   /* lists: */
-  if (NuSMVEnv_has_value(env, ENV_MODULE_STACK)) {
+  if (NuSMVEnv_has_value(env, ENV_MODULE_STACK))
+  {
     node_ptr module_stack = NODE_PTR(NuSMVEnv_remove_value(env, ENV_MODULE_STACK));
     free_list(nodemgr, module_stack);
   }
 
-  if (NuSMVEnv_has_value(env, ENV_PROC_SELECTOR_VNAME)) {
+  if (NuSMVEnv_has_value(env, ENV_PROC_SELECTOR_VNAME))
+  {
     node_ptr proc_selector_vname;
     proc_selector_vname = NODE_PTR(NuSMVEnv_remove_value(env, ENV_PROC_SELECTOR_VNAME));
     free_node(nodemgr, proc_selector_vname);
@@ -1502,9 +1561,9 @@ void CompileFlatten_quit_flattener(NuSMVEnv_ptr env)
 void CompileFlatten_hash_module(const NuSMVEnv_ptr env, node_ptr parsed_module)
 {
   const NodeMgr_ptr nodemgr =
-    NODE_MGR(NuSMVEnv_get_value(env, ENV_NODE_MGR));
+      NODE_MGR(NuSMVEnv_get_value(env, ENV_NODE_MGR));
   const ErrorMgr_ptr errmgr =
-    ERROR_MGR(NuSMVEnv_get_value(env, ENV_ERROR_MANAGER));
+      ERROR_MGR(NuSMVEnv_get_value(env, ENV_ERROR_MANAGER));
   /* We insert the definition of the current module in the module_hash
      in order to make it available for the Compile_FlattenHierarchy
      routines. */
@@ -1512,9 +1571,9 @@ void CompileFlatten_hash_module(const NuSMVEnv_ptr env, node_ptr parsed_module)
   node_ptr params = cdar(parsed_module);
   node_ptr def = cdr(parsed_module);
 
-  if (lookup_module_hash(env, name)) ErrorMgr_error_redefining(errmgr, name);
-  insert_module_hash(env, name, new_lined_node(nodemgr, LAMBDA, params, reverse(def),
-                                          node_get_lineno(parsed_module)));
+  if (lookup_module_hash(env, name))
+    ErrorMgr_error_redefining(errmgr, name);
+  insert_module_hash(env, name, new_lined_node(nodemgr, LAMBDA, params, reverse(def), node_get_lineno(parsed_module)));
 }
 
 SymbType_ptr Compile_InstantiateType(SymbTable_ptr st, SymbLayer_ptr layer,
@@ -1524,22 +1583,24 @@ SymbType_ptr Compile_InstantiateType(SymbTable_ptr st, SymbLayer_ptr layer,
 {
   const NuSMVEnv_ptr env = EnvObject_get_environment(ENV_OBJECT(st));
   const StreamMgr_ptr streams =
-    STREAM_MGR(NuSMVEnv_get_value(env, ENV_STREAM_MANAGER));
+      STREAM_MGR(NuSMVEnv_get_value(env, ENV_STREAM_MANAGER));
   const NodeMgr_ptr nodemgr =
-    NODE_MGR(NuSMVEnv_get_value(env, ENV_NODE_MGR));
+      NODE_MGR(NuSMVEnv_get_value(env, ENV_NODE_MGR));
   const ErrorMgr_ptr errmgr =
-    ERROR_MGR(NuSMVEnv_get_value(env, ENV_ERROR_MANAGER));
+      ERROR_MGR(NuSMVEnv_get_value(env, ENV_ERROR_MANAGER));
   SymbType_ptr symbolicType = SYMB_TYPE(NULL);
 
   nusmv_yylineno = node_get_lineno(type);
 
   /* process the type */
-  switch (node_get_type(type)) {
+  switch (node_get_type(type))
+  {
   case BOOLEAN:
     symbolicType = SymbType_create(env, SYMB_TYPE_BOOLEAN, Nil);
     break;
 
-  case TWODOTS: {
+  case TWODOTS:
+  {
     node_ptr expanded_range = Nil;
     int dim1, dim2;
 
@@ -1548,14 +1609,18 @@ SymbType_ptr Compile_InstantiateType(SymbTable_ptr st, SymbLayer_ptr layer,
     /* Checks if the range is a "range", i.e. a range is from "a" to "b"
        with the constraint that "b >= a" */
     expanded_range = CompileFlatten_expand_range(env, dim1, dim2);
-    if (expanded_range == Nil) { ErrorMgr_error_empty_range(errmgr, name, dim1, dim2); }
+    if (expanded_range == Nil)
+    {
+      ErrorMgr_error_empty_range(errmgr, name, dim1, dim2);
+    }
     flatten_declare_constants_within_list(st, layer, expanded_range);
 
     symbolicType = SymbType_create(env, SYMB_TYPE_ENUM, expanded_range);
     break;
   }
 
-  case SCALAR: {
+  case SCALAR:
+  {
     node_ptr value_list = CompileFlatten_normalise_value_list(env, car(type));
     node_ptr iter;
 
@@ -1563,18 +1628,21 @@ SymbType_ptr Compile_InstantiateType(SymbTable_ptr st, SymbLayer_ptr layer,
        process_selector may have complex symbolic constants.
        Also TRUE and FALSE cannot be part of the constants
     */
-    for (iter = value_list; Nil != iter; iter = cdr(iter)) {
+    for (iter = value_list; Nil != iter; iter = cdr(iter))
+    {
       /* NOTE: the name of process_selector is the same as in
          create_process_symbolic_variables
       */
       if (DOT == node_get_type(car(iter)) &&
-          name != find_node(nodemgr, DOT, Nil, sym_intern(env, PROCESS_SELECTOR_VAR_NAME))) {
+          name != find_node(nodemgr, DOT, Nil, sym_intern(env, PROCESS_SELECTOR_VAR_NAME)))
+      {
         nusmv_yylineno = node_get_lineno(car(iter));
         ErrorMgr_rpterr(errmgr, "unexpected \".\" in a costant name \n");
       }
 
       if (TRUEEXP == node_get_type(car(iter)) ||
-          FALSEEXP == node_get_type(car(iter))) {
+          FALSEEXP == node_get_type(car(iter)))
+      {
         ErrorMgr_error_invalid_enum_value(errmgr, car(iter));
       }
     }
@@ -1587,7 +1655,7 @@ SymbType_ptr Compile_InstantiateType(SymbTable_ptr st, SymbLayer_ptr layer,
   }
 
   case INTEGER:
-    symbolicType = SymbType_create(env, SYMB_TYPE_INTEGER,  Nil /*body*/);
+    symbolicType = SymbType_create(env, SYMB_TYPE_INTEGER, Nil /*body*/);
     break;
 
   case REAL:
@@ -1595,30 +1663,33 @@ SymbType_ptr Compile_InstantiateType(SymbTable_ptr st, SymbLayer_ptr layer,
     break;
 
   /* [SM] We have to handle the CONTINUOUS type here */
-  case CONTINUOUS: {
+  case CONTINUOUS:
+  {
     symbolicType = SymbType_create(env, SYMB_TYPE_CONTINUOUS, Nil /*body*/);
     break;
   }
 
   case UNSIGNED_WORD:
-  case SIGNED_WORD: {
+  case SIGNED_WORD:
+  {
     /* the correctness of the width-expression is checked
        in the type-checking phase.
        Then the width expression is evaluated and checked for
        being constant NUMBER.
     */
     node_ptr num = CompileFlatten_resolve_number(st, car(type), context);
-    if ((node_ptr) NULL == num || NUMBER != node_get_type(num)) {
+    if ((node_ptr)NULL == num || NUMBER != node_get_type(num))
+    {
       ErrorMgr_error_not_constant_width_of_word_type(errmgr, name);
     }
-    symbolicType = SymbType_create(env, node_get_type(type) == SIGNED_WORD ?
-                                   SYMB_TYPE_SIGNED_WORD : SYMB_TYPE_UNSIGNED_WORD,
+    symbolicType = SymbType_create(env, node_get_type(type) == SIGNED_WORD ? SYMB_TYPE_SIGNED_WORD : SYMB_TYPE_UNSIGNED_WORD,
                                    num);
 
     break;
   }
 
-  case WORDARRAY_TYPE: {
+  case WORDARRAY_TYPE:
+  {
     /* the correctness of the width-expressions are checked
        in the type-checking phase.
        Then the width expressions are evaluated and checked for
@@ -1630,7 +1701,8 @@ SymbType_ptr Compile_InstantiateType(SymbTable_ptr st, SymbLayer_ptr layer,
     node_ptr dim1 = CompileFlatten_resolve_number(st, car(type), context);
     SymbType_ptr subtype;
 
-    if (NUMBER != node_get_type(dim1) ) {
+    if (NUMBER != node_get_type(dim1))
+    {
       ErrorMgr_error_not_constant_width_of_word_array_type(errmgr, name);
     }
 
@@ -1640,16 +1712,18 @@ SymbType_ptr Compile_InstantiateType(SymbTable_ptr st, SymbLayer_ptr layer,
                                 cdr(type), context, expand_bounded_arrays);
 
     /* do not expand arrays; keep the array information */
-    if (!expand_bounded_arrays) {
+    if (!expand_bounded_arrays)
+    {
       SymbType_ptr subtype =
-        Compile_InstantiateType(st, layer,
-                                find_node(nodemgr, WORDARRAY, name, dim1),
-                                cdr(type), context, expand_bounded_arrays);
+          Compile_InstantiateType(st, layer,
+                                  find_node(nodemgr, WORDARRAY, name, dim1),
+                                  cdr(type), context, expand_bounded_arrays);
       symbolicType = SymbType_create(env, SYMB_TYPE_WORDARRAY,
                                      new_node(nodemgr, CONS, dim1,
                                               NODE_PTR(subtype)));
     }
-    else {
+    else
+    {
       /* [AI] currently the array expansion code works for 1 dimensional array
          need to extend the functionality
          once done remove the below error and assert */
@@ -1657,35 +1731,36 @@ SymbType_ptr Compile_InstantiateType(SymbTable_ptr st, SymbLayer_ptr layer,
       nusmv_assert(false);
 
       { /* below is the array expansion trick */
-          SymbType_ptr subtype =
+        SymbType_ptr subtype =
             Compile_InstantiateType(st, layer,
                                     find_node(nodemgr, ARRAY, name, dim1),
                                     cdr(type), context, expand_bounded_arrays);
-          int size = node_get_int(dim1);
-          WordNumber_ptr maxWord = WordNumberMgr_max_unsigned_value(words, size);
-          unsigned long long maxValue = WordNumber_get_unsigned_value(maxWord);
-          symbolicType = SymbType_create_array(subtype, 0, maxValue - 1 );
+        int size = node_get_int(dim1);
+        WordNumber_ptr maxWord = WordNumberMgr_max_unsigned_value(words, size);
+        unsigned long long maxValue = WordNumber_get_unsigned_value(maxWord);
+        symbolicType = SymbType_create_array(subtype, 0, maxValue - 1);
       }
     }
     break;
-
   }
 
     /* unbounded array with integer index */
-  case INTARRAY_TYPE: {
+  case INTARRAY_TYPE:
+  {
     const MasterPrinter_ptr wffprint =
-      MASTER_PRINTER(NuSMVEnv_get_value(env, ENV_WFF_PRINTER));
+        MASTER_PRINTER(NuSMVEnv_get_value(env, ENV_WFF_PRINTER));
 
     SymbType_ptr subtype;
 
     subtype = Compile_InstantiateType(st, layer,
                                       find_node(nodemgr, INTARRAY, name, car(type)),
                                       car(type), context, false);
-    if (SymbType_is_enum(subtype)) {
+    if (SymbType_is_enum(subtype))
+    {
       StreamMgr_print_error(streams,
                             "Enum/Range as element type for unbounded arrays not supported '%N",
                             type);
-      StreamMgr_print_error(streams,  "'\n");
+      StreamMgr_print_error(streams, "'\n");
       ErrorMgr_error_not_supported_feature(errmgr, "");
     }
 
@@ -1696,9 +1771,10 @@ SymbType_ptr Compile_InstantiateType(SymbTable_ptr st, SymbLayer_ptr layer,
   }
 
     /* Array or matrix type */
-  case ARRAY_TYPE: {
+  case ARRAY_TYPE:
+  {
     const MasterPrinter_ptr wffprint =
-      MASTER_PRINTER(NuSMVEnv_get_value(env, ENV_WFF_PRINTER));
+        MASTER_PRINTER(NuSMVEnv_get_value(env, ENV_WFF_PRINTER));
 
     node_ptr tmp;
     node_ptr lower, upper;
@@ -1708,26 +1784,28 @@ SymbType_ptr Compile_InstantiateType(SymbTable_ptr st, SymbLayer_ptr layer,
     /* Resolve the associated range and the subtype */
     tmp = car(car(type));
     lower = CompileFlatten_resolve_number(st, tmp, context);
-    if ((node_ptr) NULL == lower) {
+    if ((node_ptr)NULL == lower)
+    {
       /* error handling */
       extern int nusmv_yylineno;
 
-      StreamMgr_print_error(streams,  "Unexpected value at token '");
+      StreamMgr_print_error(streams, "Unexpected value at token '");
       StreamMgr_nprint_error(streams, wffprint, "%N", tmp);
-      StreamMgr_print_error(streams,  "'\n");
+      StreamMgr_print_error(streams, "'\n");
       nusmv_yylineno = node_get_lineno(tmp);
       ErrorMgr_error_expected_number(errmgr);
     }
 
     tmp = cdr(car(type));
     upper = CompileFlatten_resolve_number(st, tmp, context);
-    if ((node_ptr) NULL == upper) {
+    if ((node_ptr)NULL == upper)
+    {
       /* error handling */
       extern int nusmv_yylineno;
 
-      StreamMgr_print_error(streams,  "Unexpected value at token '");
+      StreamMgr_print_error(streams, "Unexpected value at token '");
       StreamMgr_nprint_error(streams, wffprint, "%N", tmp);
-      StreamMgr_print_error(streams,  "'\n");
+      StreamMgr_print_error(streams, "'\n");
       nusmv_yylineno = node_get_lineno(tmp);
       ErrorMgr_error_expected_number(errmgr);
     }
@@ -1744,19 +1822,21 @@ SymbType_ptr Compile_InstantiateType(SymbTable_ptr st, SymbLayer_ptr layer,
     break;
   }
 
-  case NFUNCTION_TYPE: {
+  case NFUNCTION_TYPE:
+  {
     NFunction_ptr nfunction = NULL;
     node_ptr ftype = car(type);
     node_ptr rtype = cdr(type);
     SymbType_ptr ret = Compile_InstantiateType(st, layer, name, rtype, context, false);
     NodeList_ptr args_list = NodeList_create_from_list(ftype);
     int length = NodeList_get_length(args_list);
-    SymbType_ptr* args = ALLOC(SymbType_ptr, length);
+    SymbType_ptr *args = ALLOC(SymbType_ptr, length);
 
     ListIter_ptr iter;
     node_ptr arg;
     int i = 0;
-    NODE_LIST_FOREACH(args_list, iter){
+    NODE_LIST_FOREACH(args_list, iter)
+    {
       arg = NodeList_get_elem_at(args_list, iter);
       args[i++] = Compile_InstantiateType(st, layer, name, arg, context, false);
     }
@@ -1771,7 +1851,7 @@ SymbType_ptr Compile_InstantiateType(SymbTable_ptr st, SymbLayer_ptr layer,
   case PROCESS:
   default:
     ErrorMgr_internal_error(errmgr, "Compile_InstantiateType: type = %d",
-                   node_get_type(type));
+                            node_get_type(type));
     break;
   } /* switch */
 
@@ -1786,13 +1866,13 @@ boolean Compile_DeclareVariable(SymbTable_ptr st, SymbLayer_ptr layer,
 {
   const NuSMVEnv_ptr env = EnvObject_get_environment(ENV_OBJECT(st));
   const StreamMgr_ptr streams =
-    STREAM_MGR(NuSMVEnv_get_value(env, ENV_STREAM_MANAGER));
+      STREAM_MGR(NuSMVEnv_get_value(env, ENV_STREAM_MANAGER));
   const NodeMgr_ptr nodemgr =
-    NODE_MGR(NuSMVEnv_get_value(env, ENV_NODE_MGR));
+      NODE_MGR(NuSMVEnv_get_value(env, ENV_NODE_MGR));
   const ErrorMgr_ptr errmgr =
-    ERROR_MGR(NuSMVEnv_get_value(env, ENV_ERROR_MANAGER));
+      ERROR_MGR(NuSMVEnv_get_value(env, ENV_ERROR_MANAGER));
   const OptsHandler_ptr opts =
-    OPTS_HANDLER(NuSMVEnv_get_value(env, ENV_OPTS_HANDLER));
+      OPTS_HANDLER(NuSMVEnv_get_value(env, ENV_OPTS_HANDLER));
 
   boolean result = false;
   ResolveSymbol_ptr rs;
@@ -1802,37 +1882,44 @@ boolean Compile_DeclareVariable(SymbTable_ptr st, SymbLayer_ptr layer,
 
   /* Detect name clashes between Nil-context vars and constants */
   if ((DOT == node_get_type(name)) && (Nil == car(name)) &&
-      (!SymbLayer_can_declare_constant(layer, cdr(name))))  {
+      (!SymbLayer_can_declare_constant(layer, cdr(name))))
+  {
     ErrorMgr_error_ambiguous(errmgr, name);
   }
 
-  if (!SymbLayer_can_declare_var(layer, name)) {
+  if (!SymbLayer_can_declare_var(layer, name))
+  {
     /* a more precise error message */
-    if (SymbTable_is_symbol_parameter(st, name)) ErrorMgr_error_shadowing(errmgr, name);
-    else ErrorMgr_error_redefining(errmgr, name);
+    if (SymbTable_is_symbol_parameter(st, name))
+      ErrorMgr_error_shadowing(errmgr, name);
+    else
+      ErrorMgr_error_redefining(errmgr, name);
   }
 
   /* process special cases.
      If one of special cases is detected then required declarations are done
      in below switch and yype is set to NULL. */
-  switch (SymbType_get_tag(type)) {
-  case SYMB_TYPE_ENUM: {
+  switch (SymbType_get_tag(type))
+  {
+  case SYMB_TYPE_ENUM:
+  {
     /* special case is enumeration of 1 value => declare a define
        instead of a var */
     node_ptr values = SymbType_get_enum_type_values(type);
     nusmv_assert(values != 0); /* every enum type has some values */
     if (!(opt_keep_single_value_vars(opts)) &&
-        (Nil == cdr(values))) {
+        (Nil == cdr(values)))
+    {
       const MasterPrinter_ptr wffprint =
-        MASTER_PRINTER(NuSMVEnv_get_value(env, ENV_WFF_PRINTER));
+          MASTER_PRINTER(NuSMVEnv_get_value(env, ENV_WFF_PRINTER));
 
       SymbLayer_declare_define(layer, name, context, car(values));
       SymbType_destroy(type);
       type = SYMB_TYPE(NULL);
 
-      StreamMgr_print_error(streams,  "WARNING: single-value variable '");
+      StreamMgr_print_error(streams, "WARNING: single-value variable '");
       StreamMgr_nprint_error(streams, wffprint, "%N", name);
-      StreamMgr_print_error(streams,  "' has been stored as a constant\n");
+      StreamMgr_print_error(streams, "' has been stored as a constant\n");
     }
     break;
   }
@@ -1847,7 +1934,8 @@ boolean Compile_DeclareVariable(SymbTable_ptr st, SymbLayer_ptr layer,
   case SYMB_TYPE_INTARRAY:
     break; /* nothing special here */
 
-  case SYMB_TYPE_ARRAY: {
+  case SYMB_TYPE_ARRAY:
+  {
     /* Array is fully special:
        Declare the array as a known symbol in this layer which is not a
        variable nor a constant nor a define.
@@ -1862,9 +1950,11 @@ boolean Compile_DeclareVariable(SymbTable_ptr st, SymbLayer_ptr layer,
     lower = SymbType_get_array_lower_bound(type);
     upper = SymbType_get_array_upper_bound(type);
 
-    for (i=lower; i<=upper; ++i) {
+    for (i = lower; i <= upper; ++i)
+    {
       node_ptr index = find_node(nodemgr, NUMBER, NODE_FROM_INT(i), Nil);
-      if (SymbLayer_can_declare_constant(layer, index)) {
+      if (SymbLayer_can_declare_constant(layer, index))
+      {
         SymbLayer_declare_constant(layer, index);
       }
       /* Creates the name[i] variable (which could be an array as well)*/
@@ -1875,16 +1965,17 @@ boolean Compile_DeclareVariable(SymbTable_ptr st, SymbLayer_ptr layer,
     break;
   }
 
-
   default:
     error_unreachable_code(); /* unsupported type */
   }
 
   /* if type is not NULL then this is a normal case
      and a variable has to be declared */
-  if (SYMB_TYPE(NULL) != type) {
+  if (SYMB_TYPE(NULL) != type)
+  {
     result = true;
-    switch (mode) {
+    switch (mode)
+    {
     case State_Variables_Instantiation_Mode:
       SymbLayer_declare_state_var(layer, name, type);
       break;
@@ -1910,9 +2001,9 @@ boolean Compile_DeclareFunction(SymbTable_ptr st, SymbLayer_ptr layer,
 {
   const NuSMVEnv_ptr env = EnvObject_get_environment(ENV_OBJECT(st));
   const StreamMgr_ptr streams =
-    STREAM_MGR(NuSMVEnv_get_value(env, ENV_STREAM_MANAGER));
+      STREAM_MGR(NuSMVEnv_get_value(env, ENV_STREAM_MANAGER));
   const ErrorMgr_ptr errmgr =
-    ERROR_MGR(NuSMVEnv_get_value(env, ENV_ERROR_MANAGER));
+      ERROR_MGR(NuSMVEnv_get_value(env, ENV_ERROR_MANAGER));
 
   boolean result = false;
   ResolveSymbol_ptr rs;
@@ -1924,25 +2015,32 @@ boolean Compile_DeclareFunction(SymbTable_ptr st, SymbLayer_ptr layer,
 
   /* Detect name clashes between Nil-context vars and constants */
   if ((DOT == node_get_type(name)) && (Nil == car(name)) &&
-      (!SymbLayer_can_declare_constant(layer, cdr(name))))  {
+      (!SymbLayer_can_declare_constant(layer, cdr(name))))
+  {
     ErrorMgr_error_ambiguous(errmgr, name);
   }
 
-  if (!SymbLayer_can_declare_var(layer, name)) {
+  if (!SymbLayer_can_declare_var(layer, name))
+  {
     /* a more precise error message */
-    if (SymbTable_is_symbol_parameter(st, name)) ErrorMgr_error_shadowing(errmgr, name);
-    else ErrorMgr_error_redefining(errmgr, name);
+    if (SymbTable_is_symbol_parameter(st, name))
+      ErrorMgr_error_shadowing(errmgr, name);
+    else
+      ErrorMgr_error_redefining(errmgr, name);
   }
 
-  if (!SymbLayer_can_declare_function(layer, cdr(name)))  {
+  if (!SymbLayer_can_declare_function(layer, cdr(name)))
+  {
     ErrorMgr_error_ambiguous(errmgr, name);
   }
 
   /* if type is not NULL then this is a normal case
      and a variable has to be declared */
-  if (SYMB_TYPE(NULL) != type) {
+  if (SYMB_TYPE(NULL) != type)
+  {
     result = true;
-    switch (mode) {
+    switch (mode)
+    {
     case State_Functions_Instantiation_Mode:
       error_unreachable_code(); /* currently unsupported */
       break;
@@ -1958,7 +2056,6 @@ boolean Compile_DeclareFunction(SymbTable_ptr st, SymbLayer_ptr layer,
   return result;
 }
 
-
 /*---------------------------------------------------------------------------*/
 /* Definition of internal functions                                          */
 /*---------------------------------------------------------------------------*/
@@ -1970,11 +2067,11 @@ void compile_make_params_hrc(const NuSMVEnv_ptr env,
                              HrcNode_ptr hrc_result)
 {
   const StreamMgr_ptr streams =
-    STREAM_MGR(NuSMVEnv_get_value(env, ENV_STREAM_MANAGER));
+      STREAM_MGR(NuSMVEnv_get_value(env, ENV_STREAM_MANAGER));
   const ErrorMgr_ptr errmgr =
-    ERROR_MGR(NuSMVEnv_get_value(env, ENV_ERROR_MANAGER));
+      ERROR_MGR(NuSMVEnv_get_value(env, ENV_ERROR_MANAGER));
   const NodeMgr_ptr nodemgr =
-    NODE_MGR(NuSMVEnv_get_value(env, ENV_NODE_MGR));
+      NODE_MGR(NuSMVEnv_get_value(env, ENV_NODE_MGR));
 
   Olist_ptr hrc_formals, hrc_actuals;
 
@@ -1990,22 +2087,26 @@ void compile_make_params_hrc(const NuSMVEnv_ptr env,
 
   hrc_formals = Olist_create();
   hrc_actuals = Olist_create();
-  while (formal_list) {
+  while (formal_list)
+  {
     node_ptr actual_parameter;
     node_ptr formal_parameter_hrc;
     node_ptr formal_parameter_node;
     node_ptr actual_parameter_node;
 
-    if (!actual_list) {
-      if (basename != (node_ptr) NULL) {
+    if (!actual_list)
+    {
+      if (basename != (node_ptr)NULL)
+      {
         const MasterPrinter_ptr wffprint =
-          MASTER_PRINTER(NuSMVEnv_get_value(env, ENV_WFF_PRINTER));
+            MASTER_PRINTER(NuSMVEnv_get_value(env, ENV_WFF_PRINTER));
 
-        StreamMgr_print_error(streams,  "While creating instance ");
+        StreamMgr_print_error(streams, "While creating instance ");
         StreamMgr_nprint_error(streams, wffprint, "%N", basename);
         ErrorMgr_rpterr(errmgr, "too few actual parameters");
       }
-      else {
+      else
+      {
         ErrorMgr_rpterr(errmgr, "module 'main' cannot have formal parameters");
       }
     }
@@ -2028,7 +2129,6 @@ void compile_make_params_hrc(const NuSMVEnv_ptr env,
     Olist_append(hrc_actuals, actual_parameter_node);
   }
 
-
   /* the list passed to the function contains the elements in the
      reversed order (the parser builds a reversed list of elements) */
   Olist_reverse(hrc_actuals);
@@ -2038,9 +2138,9 @@ void compile_make_params_hrc(const NuSMVEnv_ptr env,
   HrcNode_replace_formal_parameters(hrc_result, hrc_formals);
   HrcNode_replace_actual_parameters(hrc_result, hrc_actuals);
 
-  if (actual_list) ErrorMgr_rpterr(errmgr, "too many actual parameters");
+  if (actual_list)
+    ErrorMgr_rpterr(errmgr, "too many actual parameters");
 }
-
 
 /*---------------------------------------------------------------------------*/
 /* Definition of static functions                                            */
@@ -2057,20 +2157,23 @@ static void compile_add_vars_to_hierarhcy(node_ptr name, SymbType_ptr type,
 {
   const NuSMVEnv_ptr env = EnvObject_get_environment(ENV_OBJECT(type));
   const NodeMgr_ptr nodemgr =
-    NODE_MGR(NuSMVEnv_get_value(env, ENV_NODE_MGR));
+      NODE_MGR(NuSMVEnv_get_value(env, ENV_NODE_MGR));
 
   SymbType_ptr subtype = SymbType_get_array_subtype(type);
   int lower = SymbType_get_array_lower_bound(type);
   int upper = SymbType_get_array_upper_bound(type);
   int i;
 
-  for (i=lower; i<=upper; ++i) {
+  for (i = lower; i <= upper; ++i)
+  {
     node_ptr index = find_node(nodemgr, NUMBER, NODE_FROM_INT(i), Nil);
     node_ptr new_name = find_node(nodemgr, ARRAY, name, index);
-    if (SymbType_is_array(subtype)) { /* still array => recursively go down */
+    if (SymbType_is_array(subtype))
+    { /* still array => recursively go down */
       compile_add_vars_to_hierarhcy(new_name, subtype, fh);
     }
-    else { /* a var was reached => add to hierarchy */
+    else
+    { /* a var was reached => add to hierarchy */
       FlatHierarchy_add_var(fh, new_name);
     }
   } /* for */
@@ -2136,9 +2239,9 @@ static void compile_instantiate_var(const NuSMVEnv_ptr env,
                                     boolean expand_bounded_arrays)
 {
   const NodeMgr_ptr nodemgr =
-    NODE_MGR(NuSMVEnv_get_value(env, ENV_NODE_MGR));
+      NODE_MGR(NuSMVEnv_get_value(env, ENV_NODE_MGR));
   const ErrorMgr_ptr errmgr =
-    ERROR_MGR(NuSMVEnv_get_value(env, ENV_ERROR_MANAGER));
+      ERROR_MGR(NuSMVEnv_get_value(env, ENV_ERROR_MANAGER));
   node_ptr hrc_var_name;
   ResolveSymbol_ptr rs;
 
@@ -2149,21 +2252,25 @@ static void compile_instantiate_var(const NuSMVEnv_ptr env,
 
   nusmv_yylineno = node_get_lineno(name);
 
-  hrc_var_name = name;   /* Name without context, used to build hrc */
+  hrc_var_name = name; /* Name without context, used to build hrc */
 
   name = ResolveSymbol_get_resolved_name(rs);
 
   /* Check if the variable can be declared, and an instance with the
      same name does not exist! */
   if (!SymbLayer_can_declare_var(layer, name) ||
-      (Nil != find_assoc(instances, name_mod))) {
+      (Nil != find_assoc(instances, name_mod)))
+  {
     /* more precise error message */
-    if (ResolveSymbol_is_parameter(rs)) ErrorMgr_error_shadowing(errmgr, name);
-    else ErrorMgr_error_redefining(errmgr, name);
+    if (ResolveSymbol_is_parameter(rs))
+      ErrorMgr_error_shadowing(errmgr, name);
+    else
+      ErrorMgr_error_redefining(errmgr, name);
   }
 
   /* process the type */
-  switch (node_get_type(type)) {
+  switch (node_get_type(type))
+  {
     /* Basic types */
   case BOOLEAN:
   case TWODOTS:
@@ -2173,7 +2280,8 @@ static void compile_instantiate_var(const NuSMVEnv_ptr env,
   case UNSIGNED_WORD:
   case SIGNED_WORD:
   case WORDARRAY_TYPE:
-  case INTARRAY_TYPE: {
+  case INTARRAY_TYPE:
+  {
     SymbType_ptr symbolicType = Compile_InstantiateType(st, layer,
                                                         name, type, context,
                                                         expand_bounded_arrays);
@@ -2185,18 +2293,22 @@ static void compile_instantiate_var(const NuSMVEnv_ptr env,
                                          context,
                                          variable_instantiation_mode_get(env));
 
-    if (true == dv) {
+    if (true == dv)
+    {
       FlatHierarchy_add_var(result, name);
     }
 
-    if (HRC_NODE(NULL) != hrc_result) {
-      if (true == dv) {
+    if (HRC_NODE(NULL) != hrc_result)
+    {
+      if (true == dv)
+      {
         Instantiation_Variables_Mode_Type mode =
-          variable_instantiation_mode_get(env);
+            variable_instantiation_mode_get(env);
 
         node_ptr hrc_var = cons(nodemgr, hrc_var_name, type);
 
-        switch (mode) {
+        switch (mode)
+        {
         case State_Variables_Instantiation_Mode:
           HrcNode_add_state_variable(hrc_result, hrc_var);
           break;
@@ -2213,16 +2325,19 @@ static void compile_instantiate_var(const NuSMVEnv_ptr env,
       }
       /* Check for single-value enums declared as constants to be
          declared also into the HRC node */
-      else if (SymbTable_is_symbol_define(st, name)) {
-          node_ptr body = SymbTable_get_define_body(st, name);
+      else if (SymbTable_is_symbol_define(st, name))
+      {
+        node_ptr body = SymbTable_get_define_body(st, name);
 
-          if (NUMBER != node_get_type(body)) {
-            HrcNode_add_constants(hrc_result, cons(nodemgr, body, Nil));
-            HrcNode_add_define(hrc_result, cons(nodemgr, hrc_var_name, body));
-          }
-          else {
-            HrcNode_add_define(hrc_result, cons(nodemgr, hrc_var_name, body));
-          }
+        if (NUMBER != node_get_type(body))
+        {
+          HrcNode_add_constants(hrc_result, cons(nodemgr, body, Nil));
+          HrcNode_add_define(hrc_result, cons(nodemgr, hrc_var_name, body));
+        }
+        else
+        {
+          HrcNode_add_define(hrc_result, cons(nodemgr, hrc_var_name, body));
+        }
       }
     }
 
@@ -2230,7 +2345,8 @@ static void compile_instantiate_var(const NuSMVEnv_ptr env,
   }
 
     /* Array or matrix type */
-  case ARRAY_TYPE: {
+  case ARRAY_TYPE:
+  {
     SymbType_ptr symbolicType = Compile_InstantiateType(st, layer,
                                                         name, type, context,
                                                         false);
@@ -2241,13 +2357,15 @@ static void compile_instantiate_var(const NuSMVEnv_ptr env,
 
     compile_add_vars_to_hierarhcy(name, symbolicType, result);
 
-    if (HRC_NODE(NULL) != hrc_result) {
+    if (HRC_NODE(NULL) != hrc_result)
+    {
       Instantiation_Variables_Mode_Type mode =
-        variable_instantiation_mode_get(env);
+          variable_instantiation_mode_get(env);
 
       node_ptr hrc_var = cons(nodemgr, hrc_var_name, type);
 
-      switch (mode) {
+      switch (mode)
+      {
       case State_Variables_Instantiation_Mode:
         HrcNode_add_state_variable(hrc_result, hrc_var);
         break;
@@ -2272,8 +2390,9 @@ static void compile_instantiate_var(const NuSMVEnv_ptr env,
     break;
   }
 
-   /* Module Instantiation */
-  case MODTYPE: {
+    /* Module Instantiation */
+  case MODTYPE:
+  {
     Pair pair;
     node_ptr actual;
 
@@ -2284,12 +2403,14 @@ static void compile_instantiate_var(const NuSMVEnv_ptr env,
     /* Insert the instance in the instances map */
     insert_assoc(instances, name_mod, NODE_FROM_INT(1));
 
-    if (HRC_NODE(NULL) == hrc_result) {
+    if (HRC_NODE(NULL) == hrc_result)
+    {
       compile_instantiate_by_name(env, st, layer, car(type), name, actual,
                                   assign, result, HRC_NODE(NULL),
                                   instances, expand_bounded_arrays);
     }
-    else {
+    else
+    {
       HrcNode_ptr hrc_child;
       node_ptr crude_mod_name;
       node_ptr mod_name;
@@ -2300,8 +2421,9 @@ static void compile_instantiate_var(const NuSMVEnv_ptr env,
       crude_mod_name = car(type);
       mod_name = find_atom(nodemgr, crude_mod_name);
 
-      mod_def  = lookup_module_hash(env, mod_name);
-      if (NODE_PTR(Nil) == mod_def) {
+      mod_def = lookup_module_hash(env, mod_name);
+      if (NODE_PTR(Nil) == mod_def)
+      {
         /* The module is undefined */
         ErrorMgr_error_undefined(errmgr, mod_name);
       }
@@ -2334,14 +2456,16 @@ static void compile_instantiate_var(const NuSMVEnv_ptr env,
   }
 
     /* Module process instantiation */
-  case PROCESS: {
+  case PROCESS:
+  {
     Pair pair;
     node_ptr actual, pmod_name, pmod_args;
 
-    if (HRC_NODE(NULL) != hrc_result) {
+    if (HRC_NODE(NULL) != hrc_result)
+    {
       HrcNode_ptr root = get_hrc_root_node(hrc_result);
       /* Set a flag so we know that the HRC hierarchy is not usable */
-      HrcNode_set_undef(root, (void*)~0);
+      HrcNode_set_undef(root, (void *)~0);
       hrc_result = HRC_NODE(NULL);
     }
     pmod_name = car(car(type));
@@ -2367,11 +2491,10 @@ static void compile_instantiate_var(const NuSMVEnv_ptr env,
 
   default:
     ErrorMgr_internal_error(errmgr, "compile_instantiate_var: type = %d",
-                   node_get_type(type));
+                            node_get_type(type));
     break;
   }
 }
-
 
 /*!
   \brief Instantiates the given function.
@@ -2395,9 +2518,9 @@ static void compile_instantiate_fun(const NuSMVEnv_ptr env,
                                     HrcNode_ptr hrc_result, hash_ptr instances)
 {
   const NodeMgr_ptr nodemgr =
-    NODE_MGR(NuSMVEnv_get_value(env, ENV_NODE_MGR));
+      NODE_MGR(NuSMVEnv_get_value(env, ENV_NODE_MGR));
   const ErrorMgr_ptr errmgr =
-    ERROR_MGR(NuSMVEnv_get_value(env, ENV_ERROR_MANAGER));
+      ERROR_MGR(NuSMVEnv_get_value(env, ENV_ERROR_MANAGER));
   node_ptr hrc_fun_name;
   ResolveSymbol_ptr rs;
 
@@ -2408,23 +2531,28 @@ static void compile_instantiate_fun(const NuSMVEnv_ptr env,
 
   nusmv_yylineno = node_get_lineno(name);
 
-  hrc_fun_name = name;   /* Name without context, used to build hrc */
+  hrc_fun_name = name; /* Name without context, used to build hrc */
 
   name = ResolveSymbol_get_resolved_name(rs);
 
   /* Check if the variable can be declared, and an instance with the
      same name does not exist! */
   if (!SymbLayer_can_declare_var(layer, name) ||
-      (Nil != find_assoc(instances, name_mod))) {
+      (Nil != find_assoc(instances, name_mod)))
+  {
     /* more precise error message */
-    if (ResolveSymbol_is_parameter(rs)) ErrorMgr_error_shadowing(errmgr, name);
-    else ErrorMgr_error_redefining(errmgr, name);
+    if (ResolveSymbol_is_parameter(rs))
+      ErrorMgr_error_shadowing(errmgr, name);
+    else
+      ErrorMgr_error_redefining(errmgr, name);
   }
 
   /* process the type */
-  switch (node_get_type(type)) {
+  switch (node_get_type(type))
+  {
     /* Basic types */
-  case NFUNCTION_TYPE: {
+  case NFUNCTION_TYPE:
+  {
     SymbType_ptr symbolicType = Compile_InstantiateType(st, layer,
                                                         name, type, context, false);
     /* SymbLayer_declare_variable_array will be invoked in
@@ -2432,13 +2560,15 @@ static void compile_instantiate_fun(const NuSMVEnv_ptr env,
     Compile_DeclareFunction(st, layer, name, symbolicType, context,
                             function_instantiation_mode_get(env));
 
-    if (HRC_NODE(NULL) != hrc_result) {
+    if (HRC_NODE(NULL) != hrc_result)
+    {
       Instantiation_Variables_Mode_Type mode =
-        function_instantiation_mode_get(env);
+          function_instantiation_mode_get(env);
 
       node_ptr hrc_fun = cons(nodemgr, hrc_fun_name, type);
 
-      switch (mode) {
+      switch (mode)
+      {
       case Frozen_Functions_Instantiation_Mode:
         HrcNode_add_frozen_function(hrc_result, hrc_fun);
         break;
@@ -2453,7 +2583,7 @@ static void compile_instantiate_fun(const NuSMVEnv_ptr env,
 
   default:
     ErrorMgr_internal_error(errmgr, "compile_instantiate_fun: type = %d",
-                   node_get_type(type));
+                            node_get_type(type));
     break;
   }
 }
@@ -2478,14 +2608,15 @@ static void compile_instantiate_vars(const NuSMVEnv_ptr env,
                                      boolean expand_bounded_arrays)
 {
   const NodeMgr_ptr nodemgr =
-    NODE_MGR(NuSMVEnv_get_value(env, ENV_NODE_MGR));
+      NODE_MGR(NuSMVEnv_get_value(env, ENV_NODE_MGR));
 
   node_ptr rev_vars_list;
   node_ptr iter;
 
   rev_vars_list = reverse_ns(nodemgr, var_list);
   iter = rev_vars_list;
-  while (iter != Nil) {
+  while (iter != Nil)
+  {
     node_ptr cur_var = car(iter);
     node_ptr name = car(cur_var);
     node_ptr type = cdr(cur_var);
@@ -2528,14 +2659,15 @@ static void compile_instantiate_funs(const NuSMVEnv_ptr env,
                                      hash_ptr instances)
 {
   const NodeMgr_ptr nodemgr =
-    NODE_MGR(NuSMVEnv_get_value(env, ENV_NODE_MGR));
+      NODE_MGR(NuSMVEnv_get_value(env, ENV_NODE_MGR));
 
   node_ptr rev_funs_list;
   node_ptr iter;
 
   rev_funs_list = reverse_ns(nodemgr, fun_list);
   iter = rev_funs_list;
-  while (iter != Nil) {
+  while (iter != Nil)
+  {
     node_ptr cur_fun = car(iter);
     node_ptr name = car(cur_fun);
     node_ptr type = cdr(cur_fun);
@@ -2566,25 +2698,27 @@ static void compile_instantiate_funs(const NuSMVEnv_ptr env,
 */
 static void resolve_range(SymbTable_ptr st,
                           node_ptr range, node_ptr context,
-                          int* low, int* high)
+                          int *low, int *high)
 {
   const NuSMVEnv_ptr env = EnvObject_get_environment(ENV_OBJECT(st));
   const ErrorMgr_ptr errmgr =
-    ERROR_MGR(NuSMVEnv_get_value(env, ENV_ERROR_MANAGER));
+      ERROR_MGR(NuSMVEnv_get_value(env, ENV_ERROR_MANAGER));
   node_ptr ndim;
 
   nusmv_assert(TWODOTS == node_get_type(range));
 
   ndim = CompileFlatten_resolve_number(st, car(range), context);
 
-  if ((node_ptr) NULL == ndim || NUMBER != node_get_type(ndim)) {
+  if ((node_ptr)NULL == ndim || NUMBER != node_get_type(ndim))
+  {
     nusmv_yylineno = node_get_lineno(range);
     ErrorMgr_error_invalid_subrange(errmgr, range);
   }
   *low = node_get_int(ndim);
 
   ndim = CompileFlatten_resolve_number(st, cdr(range), context);
-  if ((node_ptr) NULL == ndim || NUMBER != node_get_type(ndim)) {
+  if ((node_ptr)NULL == ndim || NUMBER != node_get_type(ndim))
+  {
     nusmv_yylineno = node_get_lineno(range);
     ErrorMgr_error_invalid_subrange(errmgr, range);
   }
@@ -2600,15 +2734,14 @@ static void resolve_range(SymbTable_ptr st,
 
   \se None
 */
-static node_ptr put_in_context(node_ptr v, void* arg)
+static node_ptr put_in_context(node_ptr v, void *arg)
 {
   Pair_ptr p = PAIR(arg);
   NodeMgr_ptr nodemgr = NODE_MGR(Pair_get_first(p));
   node_ptr param_context = NODE_PTR(Pair_get_second(p));
 
-  return(find_node(nodemgr, CONTEXT, param_context, v));
+  return (find_node(nodemgr, CONTEXT, param_context, v));
 }
-
 
 /*!
   \brief Builds the parameters of a module from the list of formal
@@ -2631,41 +2764,46 @@ static void make_params(const NuSMVEnv_ptr env,
                         node_ptr formal_list)
 {
   const StreamMgr_ptr streams =
-    STREAM_MGR(NuSMVEnv_get_value(env, ENV_STREAM_MANAGER));
+      STREAM_MGR(NuSMVEnv_get_value(env, ENV_STREAM_MANAGER));
   const NodeMgr_ptr nodemgr =
-    NODE_MGR(NuSMVEnv_get_value(env, ENV_NODE_MGR));
+      NODE_MGR(NuSMVEnv_get_value(env, ENV_NODE_MGR));
   const ErrorMgr_ptr errmgr =
-    ERROR_MGR(NuSMVEnv_get_value(env, ENV_ERROR_MANAGER));
+      ERROR_MGR(NuSMVEnv_get_value(env, ENV_ERROR_MANAGER));
   /* DO NOT CHANGE nusmv_yylineno, now it points to declared instance basename */
   const MasterNormalizer_ptr normalizer =
-    MASTER_NORMALIZER(NuSMVEnv_get_value(env, ENV_NODE_NORMALIZER));
+      MASTER_NORMALIZER(NuSMVEnv_get_value(env, ENV_NODE_NORMALIZER));
 
-  while (formal_list) {
+  while (formal_list)
+  {
     node_ptr actual_parameter, formal_parameter_flat;
 
-    if (!actual_list) {
-      if (basename != (node_ptr) NULL) {
+    if (!actual_list)
+    {
+      if (basename != (node_ptr)NULL)
+      {
         const MasterPrinter_ptr wffprint =
-          MASTER_PRINTER(NuSMVEnv_get_value(env, ENV_WFF_PRINTER));
+            MASTER_PRINTER(NuSMVEnv_get_value(env, ENV_WFF_PRINTER));
 
-        StreamMgr_print_error(streams,  "While creating instance ");
+        StreamMgr_print_error(streams, "While creating instance ");
         StreamMgr_nprint_error(streams, wffprint, "%N", basename);
         ErrorMgr_rpterr(errmgr, "too few actual parameters");
       }
-      else {
+      else
+      {
         ErrorMgr_rpterr(errmgr, "module 'main' cannot have formal parameters");
       }
     }
 
     /* get the current actual and formal parameters */
     formal_parameter_flat =
-      find_node(nodemgr, DOT, basename, find_atom(nodemgr, car(formal_list)));
+        find_node(nodemgr, DOT, basename, find_atom(nodemgr, car(formal_list)));
 
     formal_parameter_flat = MasterNormalizer_normalize_node(normalizer, formal_parameter_flat);
 
     actual_parameter = car(actual_list);
 
-    if (!SymbLayer_can_declare_parameter(layer, formal_parameter_flat)) {
+    if (!SymbLayer_can_declare_parameter(layer, formal_parameter_flat))
+    {
       nusmv_yylineno = node_get_lineno(car(formal_list));
       ErrorMgr_error_redefining(errmgr, formal_parameter_flat);
     }
@@ -2678,7 +2816,8 @@ static void make_params(const NuSMVEnv_ptr env,
     formal_list = cdr(formal_list);
     actual_list = cdr(actual_list);
   }
-  if (actual_list) ErrorMgr_rpterr(errmgr, "too many actual parameters");
+  if (actual_list)
+    ErrorMgr_rpterr(errmgr, "too many actual parameters");
 }
 
 /*!
@@ -2717,13 +2856,13 @@ static void compile_instantiate(const NuSMVEnv_ptr env,
                                 boolean expand_bounded_arrays)
 {
   const ErrorMgr_ptr errmgr =
-    ERROR_MGR(NuSMVEnv_get_value(env, ENV_ERROR_MANAGER));
+      ERROR_MGR(NuSMVEnv_get_value(env, ENV_ERROR_MANAGER));
   const NodeMgr_ptr nodemgr =
-    NODE_MGR(NuSMVEnv_get_value(env, ENV_NODE_MGR));
+      NODE_MGR(NuSMVEnv_get_value(env, ENV_NODE_MGR));
 
   node_ptr mod_body_decls;
-  node_ptr mod_formal_args  = car(mod_def); /* Module formal parameters */
-  node_ptr mod_body         = cdr(mod_def); /* Module body */
+  node_ptr mod_formal_args = car(mod_def); /* Module formal parameters */
+  node_ptr mod_body = cdr(mod_def);        /* Module body */
 
   /* creates local parameters */
   make_params(env, layer, mod_name, actual, mod_formal_args);
@@ -2733,90 +2872,103 @@ static void compile_instantiate(const NuSMVEnv_ptr env,
      loop over module declaration
   */
   for (mod_body_decls = mod_body; mod_body_decls != Nil;
-       mod_body_decls = cdr(mod_body_decls)) {
+       mod_body_decls = cdr(mod_body_decls))
+  {
 
     node_ptr cur_decl = car(mod_body_decls);
 
-    switch (node_get_type(cur_decl)) {
+    switch (node_get_type(cur_decl))
+    {
     case DEFINE:
+    {
+      node_ptr define_iter;
+      /* loop over DEFINE declaration */
+      for (define_iter = car(cur_decl); define_iter != Nil;
+           define_iter = cdr(define_iter))
       {
-        node_ptr define_iter;
-        /* loop over DEFINE declaration */
-        for (define_iter = car(cur_decl); define_iter != Nil;
-             define_iter = cdr(define_iter)) {
-          node_ptr cur_define = car(define_iter);
+        node_ptr cur_define = car(define_iter);
 
-          node_ptr local_name = car(cur_define);
-          node_ptr definition = cdr(cur_define);
-          ResolveSymbol_ptr rs;
-          node_ptr name;
+        node_ptr local_name = car(cur_define);
+        node_ptr definition = cdr(cur_define);
+        ResolveSymbol_ptr rs;
+        node_ptr name;
 
-          rs = SymbTable_resolve_symbol(st, local_name, mod_name);
-          name = ResolveSymbol_get_resolved_name(rs);
+        rs = SymbTable_resolve_symbol(st, local_name, mod_name);
+        name = ResolveSymbol_get_resolved_name(rs);
 
-          nusmv_yylineno = node_get_lineno(define_iter);
-          if (SymbLayer_can_declare_define(layer, name)) {
-            /* If this is an array definition expand the definition
-               just like array variables. Array defines are stored in
-               parse-tree as normal defines, but they can be
-               distinguished by ARRAY_DEF at top of the expression */
-            if (ARRAY_DEF == node_get_type(definition)) {
-              instantiate_array_define(st, layer, name, mod_name, definition);
+        nusmv_yylineno = node_get_lineno(define_iter);
+        if (SymbLayer_can_declare_define(layer, name))
+        {
+          /* If this is an array definition expand the definition
+             just like array variables. Array defines are stored in
+             parse-tree as normal defines, but they can be
+             distinguished by ARRAY_DEF at top of the expression */
+          if (ARRAY_DEF == node_get_type(definition))
+          {
+            instantiate_array_define(st, layer, name, mod_name, definition);
 
-              /* Inserts define array in hrc structure */
-              if (HRC_NODE(NULL) != hrc_result) {
-                /* Uses car(cur_define), the non-flattened name */
-                node_ptr hrc_define = cons(nodemgr, car(cur_define), definition);
+            /* Inserts define array in hrc structure */
+            if (HRC_NODE(NULL) != hrc_result)
+            {
+              /* Uses car(cur_define), the non-flattened name */
+              node_ptr hrc_define = cons(nodemgr, car(cur_define), definition);
 
-                /* Defines are visited in inversed order of
-                   declaration, so the resulting list is in order */
-                HrcNode_add_array_define(hrc_result, hrc_define);
-              }
-
-            }
-            else {
-              SymbLayer_declare_define(layer, name, mod_name, definition);
-
-              if (HRC_NODE(NULL) != hrc_result) {
-                /* Uses car(cur_define), the non-flattened name */
-                node_ptr hrc_define = cons(nodemgr, car(cur_define), definition);
-
-                /* Defines are visited in inversed order of
-                   declaration, so the resulting list is in order */
-                HrcNode_add_define(hrc_result, hrc_define);
-              }
+              /* Defines are visited in inversed order of
+                 declaration, so the resulting list is in order */
+              HrcNode_add_array_define(hrc_result, hrc_define);
             }
           }
-          else {
-            nusmv_yylineno = node_get_lineno(local_name); /* set correct line info */
-            /* more precise error message */
-            if (SymbTable_is_symbol_parameter(st, name)) ErrorMgr_error_shadowing(errmgr, name);
-            else ErrorMgr_error_redefining(errmgr, name);
+          else
+          {
+            SymbLayer_declare_define(layer, name, mod_name, definition);
+
+            if (HRC_NODE(NULL) != hrc_result)
+            {
+              /* Uses car(cur_define), the non-flattened name */
+              node_ptr hrc_define = cons(nodemgr, car(cur_define), definition);
+
+              /* Defines are visited in inversed order of
+                 declaration, so the resulting list is in order */
+              HrcNode_add_define(hrc_result, hrc_define);
+            }
           }
-        }/* loop on defines */
-      }
+        }
+        else
+        {
+          nusmv_yylineno = node_get_lineno(local_name); /* set correct line info */
+          /* more precise error message */
+          if (SymbTable_is_symbol_parameter(st, name))
+            ErrorMgr_error_shadowing(errmgr, name);
+          else
+            ErrorMgr_error_redefining(errmgr, name);
+        }
+      } /* loop on defines */
+    }
+    break;
+    default:
       break;
-    default: break;
     }
   } /* loop over module declarations */
-
 
   /* Now, we instantiate all the other elements of a module.
      loop again over module declaration
   */
   for (mod_body_decls = mod_body; mod_body_decls != Nil;
-       mod_body_decls = cdr(mod_body_decls)) {
+       mod_body_decls = cdr(mod_body_decls))
+  {
     node_ptr cur_decl = car(mod_body_decls);
     node_ptr tmp;
     nusmv_yylineno = node_get_lineno(cur_decl);
 
-    switch (node_get_type(cur_decl)) {
+    switch (node_get_type(cur_decl))
+    {
     case ISA:
       /* [AMa] Here ISAa must be processed when HRC supports them */
-      if (HRC_NODE(NULL) != hrc_result) {
+      if (HRC_NODE(NULL) != hrc_result)
+      {
         HrcNode_ptr root = get_hrc_root_node(hrc_result);
         /* Set a flag so we know that the HRC hierarchy is not usable */
-        HrcNode_set_undef(root, (void*)~0);
+        HrcNode_set_undef(root, (void *)~0);
         hrc_result = HRC_NODE(NULL);
       }
       compile_instantiate_by_name(env, st, layer, car(cur_decl), mod_name,
@@ -2876,157 +3028,177 @@ static void compile_instantiate(const NuSMVEnv_ptr env,
       FlatHierarchy_set_invar(result, tmp);
       break;
 
-   /* ---------------------------------------------------------------------- */
-   /* contexts of all kind of properties are 'flattened' here                */
+      /* ---------------------------------------------------------------------- */
+      /* contexts of all kind of properties are 'flattened' here                */
     case SPEC:
+    {
+      node_ptr property_name = cdr(cur_decl);
+
+      if (node_get_type(car(cur_decl)) == CONTEXT)
       {
-        node_ptr property_name = cdr(cur_decl);
-
-        if (node_get_type(car(cur_decl)) == CONTEXT) {
-          /* concatenates local context to the current module */
-          node_ptr new_ctx = CompileFlatten_concat_contexts(env, mod_name,
-                                                            caar(cur_decl));
-          tmp = find_node(nodemgr, CONTEXT, new_ctx, cdr(car(cur_decl)));
-        }
-        else tmp = find_node(nodemgr, CONTEXT, mod_name, car(cur_decl));
-
-        /* Support for property names */
-        if (Nil != property_name) {
-          property_name = CompileFlatten_concat_contexts(env, mod_name,
-                                                         property_name);
-          if (!FlatHierarchy_add_property_name(result, property_name)){
-            ErrorMgr_error_redefining(errmgr, property_name);
-          }
-        }
-
-        tmp = find_node(nodemgr, SPEC, tmp, property_name);
-        tmp = cons(nodemgr, tmp, FlatHierarchy_get_spec(result));
-        FlatHierarchy_set_spec(result, tmp);
-        if (HRC_NODE(NULL) != hrc_result)
-          HrcNode_add_ctl_property_expr(hrc_result, cur_decl);
+        /* concatenates local context to the current module */
+        node_ptr new_ctx = CompileFlatten_concat_contexts(env, mod_name,
+                                                          caar(cur_decl));
+        tmp = find_node(nodemgr, CONTEXT, new_ctx, cdr(car(cur_decl)));
       }
-      break;
+      else
+        tmp = find_node(nodemgr, CONTEXT, mod_name, car(cur_decl));
+
+      /* Support for property names */
+      if (Nil != property_name)
+      {
+        property_name = CompileFlatten_concat_contexts(env, mod_name,
+                                                       property_name);
+        if (!FlatHierarchy_add_property_name(result, property_name))
+        {
+          ErrorMgr_error_redefining(errmgr, property_name);
+        }
+      }
+
+      tmp = find_node(nodemgr, SPEC, tmp, property_name);
+      tmp = cons(nodemgr, tmp, FlatHierarchy_get_spec(result));
+      FlatHierarchy_set_spec(result, tmp);
+      if (HRC_NODE(NULL) != hrc_result)
+        HrcNode_add_ctl_property_expr(hrc_result, cur_decl);
+    }
+    break;
 
     case LTLSPEC:
+    {
+      node_ptr property_name = cdr(cur_decl);
+
+      if (node_get_type(car(cur_decl)) == CONTEXT)
       {
-        node_ptr property_name = cdr(cur_decl);
-
-        if (node_get_type(car(cur_decl)) == CONTEXT) {
-          /* concatenates local context to the current module */
-          node_ptr new_ctx = CompileFlatten_concat_contexts(env, mod_name,
-                                                            caar(cur_decl));
-          tmp = find_node(nodemgr, CONTEXT, new_ctx, cdr(car(cur_decl)));
-        }
-        else tmp = find_node(nodemgr, CONTEXT, mod_name, car(cur_decl));
-
-        /* Support for property names */
-        if (Nil != property_name) {
-          property_name = CompileFlatten_concat_contexts(env, mod_name,
-                                                         property_name);
-          if (!FlatHierarchy_add_property_name(result, property_name)){
-            ErrorMgr_error_redefining(errmgr, property_name);
-          }
-        }
-        tmp = find_node(nodemgr, LTLSPEC, tmp, property_name);
-
-        tmp = cons(nodemgr, tmp, FlatHierarchy_get_ltlspec(result));
-        FlatHierarchy_set_ltlspec(result, tmp);
-
-        if (HRC_NODE(NULL) != hrc_result)
-          HrcNode_add_ltl_property_expr(hrc_result, cur_decl);
+        /* concatenates local context to the current module */
+        node_ptr new_ctx = CompileFlatten_concat_contexts(env, mod_name,
+                                                          caar(cur_decl));
+        tmp = find_node(nodemgr, CONTEXT, new_ctx, cdr(car(cur_decl)));
       }
-      break;
+      else
+        tmp = find_node(nodemgr, CONTEXT, mod_name, car(cur_decl));
+
+      /* Support for property names */
+      if (Nil != property_name)
+      {
+        property_name = CompileFlatten_concat_contexts(env, mod_name,
+                                                       property_name);
+        if (!FlatHierarchy_add_property_name(result, property_name))
+        {
+          ErrorMgr_error_redefining(errmgr, property_name);
+        }
+      }
+      tmp = find_node(nodemgr, LTLSPEC, tmp, property_name);
+
+      tmp = cons(nodemgr, tmp, FlatHierarchy_get_ltlspec(result));
+      FlatHierarchy_set_ltlspec(result, tmp);
+
+      if (HRC_NODE(NULL) != hrc_result)
+        HrcNode_add_ltl_property_expr(hrc_result, cur_decl);
+    }
+    break;
 
     case PSLSPEC:
+    {
+      node_ptr property_name = cdr(cur_decl);
+
+      if (node_get_type(car(cur_decl)) == CONTEXT)
       {
-        node_ptr property_name = cdr(cur_decl);
-
-        if (node_get_type(car(cur_decl)) == CONTEXT) {
-          /* concatenates local context to the current module */
-          node_ptr new_ctx = CompileFlatten_concat_contexts(env, mod_name,
-                                                            caar(cur_decl));
-          tmp = PslNode_new_context(nodemgr, new_ctx, cdr(car(cur_decl)));
-        }
-        else tmp = find_node(nodemgr, CONTEXT, mod_name, car(cur_decl));
-
-        /* Support for property names */
-        if (Nil != property_name) {
-          property_name = CompileFlatten_concat_contexts(env,mod_name,
-                                                         property_name);
-          if (!FlatHierarchy_add_property_name(result, property_name)){
-            ErrorMgr_error_redefining(errmgr, property_name);
-          }
-        }
-        tmp = find_node(nodemgr, PSLSPEC, tmp, property_name);
-
-        tmp = cons(nodemgr, tmp, FlatHierarchy_get_pslspec(result));
-        FlatHierarchy_set_pslspec(result, tmp);
-
-        if (HRC_NODE(NULL) != hrc_result)
-          HrcNode_add_psl_property_expr(hrc_result, cur_decl);
+        /* concatenates local context to the current module */
+        node_ptr new_ctx = CompileFlatten_concat_contexts(env, mod_name,
+                                                          caar(cur_decl));
+        tmp = PslNode_new_context(nodemgr, new_ctx, cdr(car(cur_decl)));
       }
-      break;
+      else
+        tmp = find_node(nodemgr, CONTEXT, mod_name, car(cur_decl));
+
+      /* Support for property names */
+      if (Nil != property_name)
+      {
+        property_name = CompileFlatten_concat_contexts(env, mod_name,
+                                                       property_name);
+        if (!FlatHierarchy_add_property_name(result, property_name))
+        {
+          ErrorMgr_error_redefining(errmgr, property_name);
+        }
+      }
+      tmp = find_node(nodemgr, PSLSPEC, tmp, property_name);
+
+      tmp = cons(nodemgr, tmp, FlatHierarchy_get_pslspec(result));
+      FlatHierarchy_set_pslspec(result, tmp);
+
+      if (HRC_NODE(NULL) != hrc_result)
+        HrcNode_add_psl_property_expr(hrc_result, cur_decl);
+    }
+    break;
 
     case INVARSPEC:
+    {
+      node_ptr property_name = cdr(cur_decl);
+
+      if (node_get_type(car(cur_decl)) == CONTEXT)
       {
-        node_ptr property_name = cdr(cur_decl);
-
-        if (node_get_type(car(cur_decl)) == CONTEXT) {
-          /* concatenates local context to the current module */
-          node_ptr new_ctx = CompileFlatten_concat_contexts(env, mod_name,
-                                                            caar(cur_decl));
-          tmp = find_node(nodemgr, CONTEXT, new_ctx, cdr(car(cur_decl)));
-        }
-        else tmp = find_node(nodemgr, CONTEXT, mod_name, car(cur_decl));
-
-        /*  Support for property names */
-        if (Nil != property_name) {
-          property_name = CompileFlatten_concat_contexts(env, mod_name,
-                                                         property_name);
-          if (!FlatHierarchy_add_property_name(result, property_name)){
-            ErrorMgr_error_redefining(errmgr, property_name);
-          }
-        }
-        tmp = find_node(nodemgr, INVARSPEC, tmp, property_name);
-
-        tmp = cons(nodemgr, tmp, FlatHierarchy_get_invarspec(result));
-        FlatHierarchy_set_invarspec(result, tmp);
-
-        if (HRC_NODE(NULL) != hrc_result)
-          HrcNode_add_invar_property_expr(hrc_result, cur_decl);
+        /* concatenates local context to the current module */
+        node_ptr new_ctx = CompileFlatten_concat_contexts(env, mod_name,
+                                                          caar(cur_decl));
+        tmp = find_node(nodemgr, CONTEXT, new_ctx, cdr(car(cur_decl)));
       }
-      break;
+      else
+        tmp = find_node(nodemgr, CONTEXT, mod_name, car(cur_decl));
+
+      /*  Support for property names */
+      if (Nil != property_name)
+      {
+        property_name = CompileFlatten_concat_contexts(env, mod_name,
+                                                       property_name);
+        if (!FlatHierarchy_add_property_name(result, property_name))
+        {
+          ErrorMgr_error_redefining(errmgr, property_name);
+        }
+      }
+      tmp = find_node(nodemgr, INVARSPEC, tmp, property_name);
+
+      tmp = cons(nodemgr, tmp, FlatHierarchy_get_invarspec(result));
+      FlatHierarchy_set_invarspec(result, tmp);
+
+      if (HRC_NODE(NULL) != hrc_result)
+        HrcNode_add_invar_property_expr(hrc_result, cur_decl);
+    }
+    break;
 
     case COMPUTE:
+    {
+      node_ptr property_name = cdr(cur_decl);
+
+      if (node_get_type(car(cur_decl)) == CONTEXT)
       {
-        node_ptr property_name = cdr(cur_decl);
-
-        if (node_get_type(car(cur_decl)) == CONTEXT) {
-          /* concatenates local context to the current module */
-          node_ptr new_ctx = CompileFlatten_concat_contexts(env, mod_name,
-                                                            caar(cur_decl));
-          tmp = find_node(nodemgr, CONTEXT, new_ctx, cdr(car(cur_decl)));
-        }
-        else tmp = find_node(nodemgr, CONTEXT, mod_name, car(cur_decl));
-
-        /*  Support for property names */
-        if (Nil != property_name) {
-          property_name = CompileFlatten_concat_contexts(env, mod_name,
-                                                         property_name);
-          if (!FlatHierarchy_add_property_name(result, property_name)){
-            ErrorMgr_error_redefining(errmgr, property_name);
-          }
-        }
-        tmp = find_node(nodemgr, COMPUTE, tmp, property_name);
-
-        tmp = cons(nodemgr, tmp, FlatHierarchy_get_compute(result));
-        FlatHierarchy_set_compute(result, tmp);
-
-        if (HRC_NODE(NULL) != hrc_result)
-          HrcNode_add_compute_property_expr(hrc_result, cur_decl);
+        /* concatenates local context to the current module */
+        node_ptr new_ctx = CompileFlatten_concat_contexts(env, mod_name,
+                                                          caar(cur_decl));
+        tmp = find_node(nodemgr, CONTEXT, new_ctx, cdr(car(cur_decl)));
       }
-      break;
-   /* ---------------------------------------------------------------------- */
+      else
+        tmp = find_node(nodemgr, CONTEXT, mod_name, car(cur_decl));
+
+      /*  Support for property names */
+      if (Nil != property_name)
+      {
+        property_name = CompileFlatten_concat_contexts(env, mod_name,
+                                                       property_name);
+        if (!FlatHierarchy_add_property_name(result, property_name))
+        {
+          ErrorMgr_error_redefining(errmgr, property_name);
+        }
+      }
+      tmp = find_node(nodemgr, COMPUTE, tmp, property_name);
+
+      tmp = cons(nodemgr, tmp, FlatHierarchy_get_compute(result));
+      FlatHierarchy_set_compute(result, tmp);
+
+      if (HRC_NODE(NULL) != hrc_result)
+        HrcNode_add_compute_property_expr(hrc_result, cur_decl);
+    }
+    break;
+      /* ---------------------------------------------------------------------- */
 
     case JUSTICE:
       tmp = cons(nodemgr, find_node(nodemgr, CONTEXT, mod_name, car(cur_decl)),
@@ -3038,14 +3210,14 @@ static void compile_instantiate(const NuSMVEnv_ptr env,
       break;
 
     case COMPASSION:
-      tmp = cons(nodemgr, cons(nodemgr, find_node(nodemgr, CONTEXT, mod_name, car(car(cur_decl))),
-                      find_node(nodemgr, CONTEXT, mod_name, cdr(car(cur_decl)))),
+      tmp = cons(nodemgr, cons(nodemgr, find_node(nodemgr, CONTEXT, mod_name, car(car(cur_decl))), find_node(nodemgr, CONTEXT, mod_name, cdr(car(cur_decl)))),
                  FlatHierarchy_get_compassion(result));
       FlatHierarchy_set_compassion(result, tmp);
 
-      if (HRC_NODE(NULL) != hrc_result) {
+      if (HRC_NODE(NULL) != hrc_result)
+      {
         node_ptr hrc_compassion =
-          cons(nodemgr, car(car(cur_decl)), cdr(car(cur_decl)));
+            cons(nodemgr, car(car(cur_decl)), cdr(car(cur_decl)));
 
         HrcNode_add_compassion_expr(hrc_result, hrc_compassion);
       }
@@ -3053,20 +3225,23 @@ static void compile_instantiate(const NuSMVEnv_ptr env,
       break;
 
     case ASSIGN:
+    {
+      /* an assign may be void */
+      if (car(cur_decl) != Nil)
       {
-        /* an assign may be void */
-        if (car(cur_decl) != Nil) {
-          *assign = find_node(nodemgr, AND, *assign,
-                              find_node(nodemgr, CONTEXT, mod_name, car(cur_decl)));
-        }
-
-        if (HRC_NODE(NULL) != hrc_result) {
-          compile_add_assign_hrc(nodemgr, hrc_result, car(cur_decl));
-        }
+        *assign = find_node(nodemgr, AND, *assign,
+                            find_node(nodemgr, CONTEXT, mod_name, car(cur_decl)));
       }
-      break;
 
-    case DEFINE: break; /* already dealt with */
+      if (HRC_NODE(NULL) != hrc_result)
+      {
+        compile_add_assign_hrc(nodemgr, hrc_result, car(cur_decl));
+      }
+    }
+    break;
+
+    case DEFINE:
+      break; /* already dealt with */
 
     case CONSTANTS:
       /* declares the contained constants: */
@@ -3074,29 +3249,96 @@ static void compile_instantiate(const NuSMVEnv_ptr env,
                                             layer,
                                             reverse_ns(nodemgr, car(cur_decl)));
 
-      if (HRC_NODE(NULL) != hrc_result) {
+      if (HRC_NODE(NULL) != hrc_result)
+      {
         HrcNode_add_constants(hrc_result, car(cur_decl));
       }
 
       break;
 
+    // simile a sopra -> dentro a una variabile Nodeptr* global
+    case CONTROLLABLES:
+    {
+
+      const StreamMgr_ptr streams =
+          STREAM_MGR(NuSMVEnv_get_value(env, ENV_STREAM_MANAGER));
+      const MasterPrinter_ptr wffprint =
+          MASTER_PRINTER(NuSMVEnv_get_value(env, ENV_WFF_PRINTER));
+
+      StreamMgr_print_error(streams, "List of controllable'");
+      StreamMgr_nprint_error(streams, wffprint, "%N", car(cur_decl));
+      StreamMgr_print_error(streams, "':\n");
+
+      NuSMVEnv_set_value(env, ENV_CONTROLLABLES, car(cur_decl));
+
+      break;
+    }
+
+    case NOTCONTROLLABLES:
+    {
+      const StreamMgr_ptr streams =
+          STREAM_MGR(NuSMVEnv_get_value(env, ENV_STREAM_MANAGER));
+      const MasterPrinter_ptr wffprint =
+          MASTER_PRINTER(NuSMVEnv_get_value(env, ENV_WFF_PRINTER));
+      StreamMgr_print_error(streams, "List of notcontrollables'");
+      StreamMgr_nprint_error(streams, wffprint, "%N", car(cur_decl));
+      StreamMgr_print_error(streams, "':\n");
+
+      NuSMVEnv_set_value(env, ENV_NOTCONTROLLABLES, car(cur_decl));
+
+      break;
+    }
+
+    case PNFVARS:
+    {
+      const StreamMgr_ptr streams =
+          STREAM_MGR(NuSMVEnv_get_value(env, ENV_STREAM_MANAGER));
+      const MasterPrinter_ptr wffprint =
+          MASTER_PRINTER(NuSMVEnv_get_value(env, ENV_WFF_PRINTER));
+      StreamMgr_print_error(streams, "List of pnf vars'");
+      StreamMgr_nprint_error(streams, wffprint, "%N", car(cur_decl));
+      StreamMgr_print_error(streams, "':\n");
+
+      NuSMVEnv_set_value(env, ENV_PNFVARS, car(cur_decl));
+
+      break;
+    }
+
+    case REALIZABLE:
+    {
+       
+      const StreamMgr_ptr streams =
+          STREAM_MGR(NuSMVEnv_get_value(env, ENV_STREAM_MANAGER));
+      const MasterPrinter_ptr wffprint =
+          MASTER_PRINTER(NuSMVEnv_get_value(env, ENV_WFF_PRINTER));
+      StreamMgr_print_error(streams, "To check realizability '");
+      StreamMgr_nprint_error(streams, wffprint, "%N", car(cur_decl));
+      StreamMgr_print_error(streams, "':\n");
+
+      NuSMVEnv_set_value(env, ENV_REALIZABLE, car(cur_decl));
+
+      break;
+    
+    }
+
     case PRED:
+    {
+      node_ptr pred_name = car(car(cur_decl));
+
+      if (Nil != pred_name)
       {
-        node_ptr pred_name = car(car(cur_decl));
-
-        if (Nil != pred_name) {
-          find_node(nodemgr, CONTEXT, mod_name, pred_name);
-        }
-        nusmv_assert(EQDEF == node_get_type(car(cur_decl)));
-        tmp = find_node(nodemgr, PRED,
-                        find_node(nodemgr, EQDEF, pred_name,
-                                  find_node(nodemgr, CONTEXT,
-                                            mod_name, cdr(car(cur_decl)))),
-                        cdr(cur_decl));
-        FlatHierarchy_add_pred(result, tmp);
-
-        break;
+        find_node(nodemgr, CONTEXT, mod_name, pred_name);
       }
+      nusmv_assert(EQDEF == node_get_type(car(cur_decl)));
+      tmp = find_node(nodemgr, PRED,
+                      find_node(nodemgr, EQDEF, pred_name,
+                                find_node(nodemgr, CONTEXT,
+                                          mod_name, cdr(car(cur_decl)))),
+                      cdr(cur_decl));
+      FlatHierarchy_add_pred(result, tmp);
+
+      break;
+    }
     case MIRROR:
       nusmv_assert(Nil == cdr(cur_decl));
       tmp = find_node(nodemgr, MIRROR,
@@ -3107,41 +3349,45 @@ static void compile_instantiate(const NuSMVEnv_ptr env,
 
       /* To be moved elsewhere */
     case DEFINE_PROPERTY:
+    {
+      node_ptr property_name = cdr(cur_decl);
+
+      if (node_get_type(car(cur_decl)) == CONTEXT)
       {
-        node_ptr property_name = cdr(cur_decl);
+        /* concatenates local context to the current module */
+        node_ptr new_ctx = CompileFlatten_concat_contexts(env, mod_name,
+                                                          caar(cur_decl));
+        tmp = find_node(nodemgr, CONTEXT, new_ctx, cdr(car(cur_decl)));
+      }
+      else
+        tmp = find_node(nodemgr, CONTEXT, mod_name, car(cur_decl));
 
-        if (node_get_type(car(cur_decl)) == CONTEXT) {
-          /* concatenates local context to the current module */
-          node_ptr new_ctx = CompileFlatten_concat_contexts(env, mod_name,
-                                                            caar(cur_decl));
-          tmp = find_node(nodemgr, CONTEXT, new_ctx, cdr(car(cur_decl)));
+      /*  Support for property names */
+      if (Nil != property_name)
+      {
+        property_name = CompileFlatten_concat_contexts(env, mod_name,
+                                                       property_name);
+        if (!FlatHierarchy_add_property_name(result, property_name))
+        {
+          ErrorMgr_error_redefining(errmgr, property_name);
         }
-        else tmp = find_node(nodemgr, CONTEXT, mod_name, car(cur_decl));
+      }
+      tmp = find_node(nodemgr, DEFINE_PROPERTY, tmp, property_name);
 
-        /*  Support for property names */
-        if (Nil != property_name) {
-          property_name = CompileFlatten_concat_contexts(env, mod_name,
-                                                         property_name);
-          if (!FlatHierarchy_add_property_name(result, property_name)){
-            ErrorMgr_error_redefining(errmgr, property_name);
-          }
-        }
-        tmp = find_node(nodemgr, DEFINE_PROPERTY, tmp, property_name);
-
-        tmp = cons(nodemgr, tmp, FlatHierarchy_get_property_patterns(result));
-        FlatHierarchy_set_property_patterns(result, tmp);
+      tmp = cons(nodemgr, tmp, FlatHierarchy_get_property_patterns(result));
+      FlatHierarchy_set_property_patterns(result, tmp);
 
 #if 0
         if (HRC_NODE(NULL) != hrc_result)
           HrcNode_add_property_pattern_expr(hrc_result, cur_decl);
 #endif
-      }
-      break;
+    }
+    break;
 
-    default: error_unreachable_code(); /* unknown kind of declaration */
+    default:
+      error_unreachable_code(); /* unknown kind of declaration */
     }
   } /* loop over module declarations */
-
 }
 
 /*!
@@ -3168,16 +3414,17 @@ static void compile_instantiate_by_name(const NuSMVEnv_ptr env,
                                         boolean expand_bounded_arrays)
 {
   const NodeMgr_ptr nodemgr =
-    NODE_MGR(NuSMVEnv_get_value(env, ENV_NODE_MGR));
+      NODE_MGR(NuSMVEnv_get_value(env, ENV_NODE_MGR));
   const ErrorMgr_ptr errmgr =
-    ERROR_MGR(NuSMVEnv_get_value(env, ENV_ERROR_MANAGER));
+      ERROR_MGR(NuSMVEnv_get_value(env, ENV_ERROR_MANAGER));
   node_ptr module_stack = Nil;
   node_ptr s;
-  node_ptr mod_name = find_atom(nodemgr, module_name);         /* find module name */
+  node_ptr mod_name = find_atom(nodemgr, module_name); /* find module name */
   /* find module definition */
-  node_ptr mod_def  = lookup_module_hash(env, mod_name);
+  node_ptr mod_def = lookup_module_hash(env, mod_name);
 
-  if (mod_def == (node_ptr) NULL) {
+  if (mod_def == (node_ptr)NULL)
+  {
     /* The module is undefined */
     nusmv_yylineno = node_get_lineno(module_name);
     ErrorMgr_error_undefined(errmgr, module_name);
@@ -3189,13 +3436,16 @@ static void compile_instantiate_by_name(const NuSMVEnv_ptr env,
   /* scans module_stack in order to find if there are recursively
      defined modules */
 
-  if (NuSMVEnv_has_value(env, ENV_MODULE_STACK)) {
+  if (NuSMVEnv_has_value(env, ENV_MODULE_STACK))
+  {
     module_stack = NODE_PTR(NuSMVEnv_get_value(env, ENV_MODULE_STACK));
   }
 
   s = module_stack;
-  while (s != Nil) {
-    if (car(s) == mod_name) {
+  while (s != Nil)
+  {
+    if (car(s) == mod_name)
+    {
       ErrorMgr_rpterr(errmgr, "module \"%s\" is recursively defined",
                       UStringMgr_get_string_text((string_ptr)car(module_name)));
     }
@@ -3217,7 +3467,6 @@ static void compile_instantiate_by_name(const NuSMVEnv_ptr env,
   NuSMVEnv_set_or_replace_value(env, ENV_MODULE_STACK, module_stack);
 }
 
-
 /*!
   \brief Recursive definition of compileFlattenProcess
 
@@ -3232,13 +3481,15 @@ compileFlattenProcessRecur(const NuSMVEnv_ptr env,
                            FlatHierarchy_ptr flatHierarchy)
 {
   const NodeMgr_ptr nodemgr =
-    NODE_MGR(NuSMVEnv_get_value(env, ENV_NODE_MGR));
+      NODE_MGR(NuSMVEnv_get_value(env, ENV_NODE_MGR));
   const ErrorMgr_ptr errmgr =
-    ERROR_MGR(NuSMVEnv_get_value(env, ENV_ERROR_MANAGER));
+      ERROR_MGR(NuSMVEnv_get_value(env, ENV_ERROR_MANAGER));
 
-  if (assign == Nil) return;
+  if (assign == Nil)
+    return;
   nusmv_yylineno = node_get_lineno(assign);
-  switch (node_get_type(assign)) {
+  switch (node_get_type(assign))
+  {
   case CONS:
   case AND:
     compileFlattenProcessRecur(env, symb_table, car(assign), context,
@@ -3253,65 +3504,70 @@ compileFlattenProcessRecur(const NuSMVEnv_ptr env,
     break;
 
   case EQDEF:
-    {
-      node_ptr vname, lhsa, stored;
-      node_ptr left  = car(assign);
-      node_ptr right = cdr(assign);
-      ResolveSymbol_ptr rs;
+  {
+    node_ptr vname, lhsa, stored;
+    node_ptr left = car(assign);
+    node_ptr right = cdr(assign);
+    ResolveSymbol_ptr rs;
 
-      switch (node_get_type(left)) {
-      case SMALLINIT: /* init assignement */ {
-        rs = SymbTable_resolve_symbol(symb_table, car(left), context);
-        vname = ResolveSymbol_get_resolved_name(rs);
-        lhsa = find_node(nodemgr, node_get_type(left), vname, Nil);
+    switch (node_get_type(left))
+    {
+    case SMALLINIT: /* init assignement */
+    {
+      rs = SymbTable_resolve_symbol(symb_table, car(left), context);
+      vname = ResolveSymbol_get_resolved_name(rs);
+      lhsa = find_node(nodemgr, node_get_type(left), vname, Nil);
+      stored = FlatHierarchy_lookup_assign(flatHierarchy, lhsa);
+
+      if (Nil != stored)
+        ErrorMgr_error_reassigning(errmgr, vname);
+    }
+    break;
+
+    case NEXT: /* next assignement */
+    {
+      rs = SymbTable_resolve_symbol(symb_table, car(left), context);
+      vname = ResolveSymbol_get_resolved_name(rs);
+      lhsa = find_node(nodemgr, node_get_type(left), vname, Nil);
+      stored = FlatHierarchy_lookup_assign(flatHierarchy, lhsa);
+
+      /* there are processes => create CASE with "running" */
+      if (NuSMVEnv_has_value(env, ENV_PROC_SELECTOR_VNAME))
+      {
+        /* create default value for assignment, i.e. var name  */
+        if (Nil == stored)
+          stored = vname;
+        /* create a CASE with running guard */
+        right = new_node(nodemgr, CASE, new_node(nodemgr, COLON, running, right), stored);
+      }
+      else
+      { /* no processes => no CASE things */
+        if (Nil != stored)
+          ErrorMgr_error_reassigning(errmgr, vname);
+      }
+    }
+    break;
+
+    default:
+      /* Invariant assignment */
+      {
+        rs = SymbTable_resolve_symbol(symb_table, left, context);
+        vname = lhsa = ResolveSymbol_get_resolved_name(rs);
         stored = FlatHierarchy_lookup_assign(flatHierarchy, lhsa);
 
-        if (Nil != stored) ErrorMgr_error_reassigning(errmgr, vname);
+        if (Nil != stored)
+          ErrorMgr_error_reassigning(errmgr, vname);
       }
-        break;
+    }
+    FlatHierarchy_insert_assign(flatHierarchy, lhsa, right);
 
-      case NEXT: /* next assignement */
-        {
-          rs = SymbTable_resolve_symbol(symb_table, car(left), context);
-          vname = ResolveSymbol_get_resolved_name(rs);
-          lhsa = find_node(nodemgr, node_get_type(left), vname, Nil);
-          stored = FlatHierarchy_lookup_assign(flatHierarchy, lhsa);
-
-
-          /* there are processes => create CASE with "running" */
-          if (NuSMVEnv_has_value(env, ENV_PROC_SELECTOR_VNAME)) {
-            /* create default value for assignment, i.e. var name  */
-            if (Nil == stored) stored = vname;
-            /* create a CASE with running guard */
-            right = new_node(nodemgr, CASE, new_node(nodemgr, COLON, running, right), stored);
-          }
-          else { /* no processes => no CASE things */
-            if (Nil != stored) ErrorMgr_error_reassigning(errmgr, vname);
-          }
-        }
-        break;
-
-      default:
-        /* Invariant assignment */
-        {
-          rs = SymbTable_resolve_symbol(symb_table, left, context);
-          vname = lhsa = ResolveSymbol_get_resolved_name(rs);
-          stored = FlatHierarchy_lookup_assign(flatHierarchy, lhsa);
-
-          if (Nil != stored)  ErrorMgr_error_reassigning(errmgr, vname);
-        }
-      }
-      FlatHierarchy_insert_assign(flatHierarchy, lhsa, right);
-
-
-      break;
-    } /* outer switch case EQDEF */
+    break;
+  } /* outer switch case EQDEF */
 
   default:
     ErrorMgr_internal_error(errmgr, "compileFlattenProcessRecur: type = %d",
-                   node_get_type(assign));
+                            node_get_type(assign));
   } /* outer switch case */
-
 }
 
 /*!
@@ -3341,16 +3597,17 @@ create_process_symbolic_variables(const NuSMVEnv_ptr env,
                                   node_ptr process_name_list)
 {
   const NodeMgr_ptr nodemgr =
-    NODE_MGR(NuSMVEnv_get_value(env, ENV_NODE_MGR));
+      NODE_MGR(NuSMVEnv_get_value(env, ENV_NODE_MGR));
   const ErrorMgr_ptr errmgr =
-    ERROR_MGR(NuSMVEnv_get_value(env, ENV_ERROR_MANAGER));
+      ERROR_MGR(NuSMVEnv_get_value(env, ENV_ERROR_MANAGER));
   node_ptr proc_selector_vname = Nil;
 
   /* the list of process always contain one element */
   nusmv_assert(CONS == node_get_type(process_name_list));
 
   /* there is just one module (main). Therefore, nothing should be done */
-  if (Nil == cdr(process_name_list)) {
+  if (Nil == cdr(process_name_list))
+  {
     /* during flattening "main" is denoted by Nil */
     nusmv_assert(Nil == car(process_name_list));
 
@@ -3368,13 +3625,14 @@ create_process_symbolic_variables(const NuSMVEnv_ptr env,
 
   /* initialise the global variable with "process_selector" name */
   proc_selector_vname =
-    find_node(nodemgr, DOT, Nil, sym_intern(env, PROCESS_SELECTOR_VAR_NAME));
+      find_node(nodemgr, DOT, Nil, sym_intern(env, PROCESS_SELECTOR_VAR_NAME));
   NuSMVEnv_set_value(env, ENV_PROC_SELECTOR_VNAME, proc_selector_vname);
 
   {
     /* internally "main" is denoted by Nil. change now Nil to "main". */
     node_ptr l = process_name_list;
-    while (Nil != l && Nil != car(l)) l = cdr(l);
+    while (Nil != l && Nil != car(l))
+      l = cdr(l);
 
     /* there should always be a Nil element ("main" module)*/
     nusmv_assert(Nil != l);
@@ -3382,7 +3640,8 @@ create_process_symbolic_variables(const NuSMVEnv_ptr env,
   }
 
   /* check that a user did not create its own  _process_selector_ */
-  if (SymbTable_is_symbol_declared(symb_table, proc_selector_vname)) {
+  if (SymbTable_is_symbol_declared(symb_table, proc_selector_vname))
+  {
     ErrorMgr_error_redefining_operational_symbol(errmgr, proc_selector_vname);
   }
 
@@ -3395,31 +3654,34 @@ create_process_symbolic_variables(const NuSMVEnv_ptr env,
     SymbLayer_declare_input_var(layer, proc_selector_vname, symbolicType);
   }
 
-
   /* Declare DEFINES representing "running"s symbols */
   {
     node_ptr main_atom = sym_intern(env, "main");
     node_ptr running_atom = sym_intern(env, RUNNING_SYMBOL);
     node_ptr iter;
 
-    for (iter = process_name_list; iter != Nil; iter = cdr(iter)) {
+    for (iter = process_name_list; iter != Nil; iter = cdr(iter))
+    {
       node_ptr module_name, def_name, def_body;
       ResolveSymbol_ptr rs;
 
       module_name = car(iter);
 
-      if (module_name == main_atom) {
+      if (module_name == main_atom)
+      {
         /* internally main is represented as Nil */
         rs = SymbTable_resolve_symbol(symb_table, running_atom, Nil);
       }
-      else {
+      else
+      {
         rs = SymbTable_resolve_symbol(symb_table, running_atom, module_name);
       }
 
       def_name = ResolveSymbol_get_resolved_name(rs);
 
       /* check that the symbol has not been already defined */
-      if (ResolveSymbol_is_defined(rs)) {
+      if (ResolveSymbol_is_defined(rs))
+      {
         ErrorMgr_error_redefining_operational_symbol(errmgr, def_name);
       }
 
@@ -3438,7 +3700,6 @@ create_process_symbolic_variables(const NuSMVEnv_ptr env,
   }
 }
 
-
 /*!
   \brief Tries to resolve recursively to a number
 
@@ -3451,12 +3712,14 @@ static node_ptr compile_flatten_eval_number(const MasterCompileFlattener_ptr fla
 {
   const NuSMVEnv_ptr env = EnvObject_get_environment(ENV_OBJECT(st));
 
-  if ((node_ptr) NULL == n) return (node_ptr) NULL;
+  if ((node_ptr)NULL == n)
+    return (node_ptr)NULL;
 
-  switch (node_get_type(n)) {
+  switch (node_get_type(n))
+  {
 
   case CONTEXT:
-    nusmv_assert((node_ptr) NULL == context);
+    nusmv_assert((node_ptr)NULL == context);
     return compile_flatten_eval_number(flattener, st, cdr(n), car(n));
 
     /* leaves */
@@ -3469,20 +3732,22 @@ static node_ptr compile_flatten_eval_number(const MasterCompileFlattener_ptr fla
   case NUMBER_REAL:
   case NUMBER_EXP:
   case FAILURE:
-    {
-      const NodeMgr_ptr nodemgr =
+  {
+    const NodeMgr_ptr nodemgr =
         NODE_MGR(NuSMVEnv_get_value(env, ENV_NODE_MGR));
 
-      return find_atom(nodemgr, n);
-    }
+    return find_atom(nodemgr, n);
+  }
 
-  case ARRAY: {
+  case ARRAY:
+  {
     ResolveSymbol_ptr rs;
 
     rs = SymbTable_resolve_symbol(st, n, context);
     /* it might be a symbol that evaluates to a number */
 
-    if (ResolveSymbol_is_undefined(rs)) {
+    if (ResolveSymbol_is_undefined(rs))
+    {
       /* this is array expression. Still it potentially may be
          resolved to constant, e.g. if define v := [1,2,3], define d:=v, then
          d[1] is array expression but can be resolved to 2.
@@ -3493,19 +3758,19 @@ static node_ptr compile_flatten_eval_number(const MasterCompileFlattener_ptr fla
       /* it is impossible that flattening returned undefined identifier. */
       nusmv_assert(tmp != n);
       return compile_flatten_eval_number(flattener, st, tmp, Nil);
-
     }
-    else {
+    else
+    {
       /* array is actually identifier-with-brackets => process it with
          ATOM, DOT and BIT below */
     }
   }
-  /* !! NO BREAK HERE !! */
-
+    /* !! NO BREAK HERE !! */
 
   case ATOM:
   case DOT:
-  case BIT: {
+  case BIT:
+  {
     ResolveSymbol_ptr rs;
     /* it might be a symbol that evaluates to a number */
     node_ptr name;
@@ -3514,12 +3779,14 @@ static node_ptr compile_flatten_eval_number(const MasterCompileFlattener_ptr fla
 
     name = ResolveSymbol_get_resolved_name(rs);
 
-    if (name != Nil && ResolveSymbol_is_define(rs)) {
+    if (name != Nil && ResolveSymbol_is_define(rs))
+    {
       /* retrieves the define value, and checkes if it is a numeric constant */
       node_ptr body = SymbTable_get_define_flatten_body(st, name);
-      return compile_flatten_eval_number(flattener, st, body, (node_ptr) NULL);
+      return compile_flatten_eval_number(flattener, st, body, (node_ptr)NULL);
     }
-    if (ResolveSymbol_is_parameter(rs)) {
+    if (ResolveSymbol_is_parameter(rs))
+    {
       /* is it a formal parameter? tries with the corresponding actual
          parameter */
       node_ptr actual = SymbTable_get_flatten_actual_parameter(st, name);
@@ -3539,27 +3806,27 @@ static node_ptr compile_flatten_eval_number(const MasterCompileFlattener_ptr fla
   case ABG:
   case EBU:
   case ABU:
-    {
-      const ExprMgr_ptr exprs = EXPR_MGR(NuSMVEnv_get_value(env, ENV_EXPR_MANAGER));
+  {
+    const ExprMgr_ptr exprs = EXPR_MGR(NuSMVEnv_get_value(env, ENV_EXPR_MANAGER));
 
-      nusmv_assert(Nil == cdr(n) || TWODOTS == node_get_type(cdr(n)));
+    nusmv_assert(Nil == cdr(n) || TWODOTS == node_get_type(cdr(n)));
 
-      return ExprMgr_resolve(exprs, st, node_get_type(n),
-                             compile_flatten_eval_number(flattener, st, car(n), context),
-                             cdr(n));
-      break;
-    }
+    return ExprMgr_resolve(exprs, st, node_get_type(n),
+                           compile_flatten_eval_number(flattener, st, car(n), context),
+                           cdr(n));
+    break;
+  }
 
   default:
-    {
-      const ExprMgr_ptr exprs = EXPR_MGR(NuSMVEnv_get_value(env, ENV_EXPR_MANAGER));
+  {
+    const ExprMgr_ptr exprs = EXPR_MGR(NuSMVEnv_get_value(env, ENV_EXPR_MANAGER));
 
-      return ExprMgr_resolve(exprs, st, node_get_type(n),
-                             compile_flatten_eval_number(flattener, st, car(n), context),
-                             compile_flatten_eval_number(flattener, st, cdr(n), context)
+    return ExprMgr_resolve(exprs, st, node_get_type(n),
+                           compile_flatten_eval_number(flattener, st, car(n), context),
+                           compile_flatten_eval_number(flattener, st, cdr(n), context)
 
-);
-    }
+    );
+  }
   }
 }
 
@@ -3575,11 +3842,12 @@ static void flatten_declare_constants_within_list(SymbTable_ptr symb_table,
 {
   const NuSMVEnv_ptr env = EnvObject_get_environment(ENV_OBJECT(symb_table));
   const NodeMgr_ptr nodemgr =
-    NODE_MGR(NuSMVEnv_get_value(env, ENV_NODE_MGR));
+      NODE_MGR(NuSMVEnv_get_value(env, ENV_NODE_MGR));
   const ErrorMgr_ptr errmgr =
-    ERROR_MGR(NuSMVEnv_get_value(env, ENV_ERROR_MANAGER));
+      ERROR_MGR(NuSMVEnv_get_value(env, ENV_ERROR_MANAGER));
 
-  while (value_list != Nil) {
+  while (value_list != Nil)
+  {
     node_ptr name = car(value_list);
 
     /* HERE we cannot use the ResolveSymbol routines also for simple
@@ -3588,20 +3856,25 @@ static void flatten_declare_constants_within_list(SymbTable_ptr symb_table,
        simple ATOM constant, and the get_resolved_name method will
        return a dotted notation node, which leads to problems in
        constant resolution later.. */
-    if (node_get_type(name) == DOT) {
+    if (node_get_type(name) == DOT)
+    {
       ResolveSymbol_ptr rs;
       rs = SymbTable_resolve_symbol(symb_table, name, Nil);
       name = ResolveSymbol_get_resolved_name(rs);
     }
-    else name = find_atom(nodemgr, name);
+    else
+      name = find_atom(nodemgr, name);
 
     if (SymbLayer_can_declare_constant(layer, name) &&
-        (!SymbTable_is_symbol_declared(symb_table, name))) {
+        (!SymbTable_is_symbol_declared(symb_table, name)))
+    {
 
       SymbLayer_declare_constant(layer, name);
     }
-    else {
-      if (!SymbTable_is_symbol_constant(symb_table, name)) {
+    else
+    {
+      if (!SymbTable_is_symbol_constant(symb_table, name))
+      {
         ErrorMgr_error_redefining(errmgr, name);
       }
     }
@@ -3626,50 +3899,53 @@ instantiate_array_define(SymbTable_ptr st,
 {
   const NuSMVEnv_ptr env = EnvObject_get_environment(ENV_OBJECT(st));
   const NodeMgr_ptr nodemgr =
-    NODE_MGR(NuSMVEnv_get_value(env, ENV_NODE_MGR));
+      NODE_MGR(NuSMVEnv_get_value(env, ENV_NODE_MGR));
   const ErrorMgr_ptr errmgr =
-    ERROR_MGR(NuSMVEnv_get_value(env, ENV_ERROR_MANAGER));
+      ERROR_MGR(NuSMVEnv_get_value(env, ENV_ERROR_MANAGER));
 
-  if (!SymbLayer_can_declare_define(layer, name)) {
+  if (!SymbLayer_can_declare_define(layer, name))
+  {
     ErrorMgr_error_redefining(errmgr, name);
     error_unreachable_code();
   }
 
-  switch (node_get_type(definition)) {
+  switch (node_get_type(definition))
+  {
   case ARRAY_DEF:
+  {
+    node_ptr iter;
+    int idx;
+
+    nusmv_assert((cdr(definition) == Nil) &&
+                 "Wrong node arity found: ARRAY_DEF must be unary!");
+
+    /* Declare this symbol */
+    SymbLayer_declare_array_define(layer, name, mod_name, definition);
+
+    /* Instantiate every element of the array individually
+       with first index = 0 */
+    for (idx = 0, iter = car(definition);
+         iter != Nil;
+         idx += 1, iter = cdr(iter))
     {
-      node_ptr iter;
-      int idx;
+      /* definition has to be a list of values */
+      node_ptr index;
+      nusmv_assert(CONS == node_get_type(iter));
 
-      nusmv_assert((cdr(definition) == Nil) &&
-                   "Wrong node arity found: ARRAY_DEF must be unary!");
-
-      /* Declare this symbol */
-      SymbLayer_declare_array_define(layer, name, mod_name, definition);
-
-      /* Instantiate every element of the array individually
-         with first index = 0 */
-      for (idx = 0, iter = car(definition);
-           iter != Nil;
-           idx += 1, iter = cdr(iter)) {
-        /* definition has to be a list of values */
-        node_ptr index;
-        nusmv_assert(CONS == node_get_type(iter));
-
-        /* Instantiate name[idx] element */
-        index = find_node(nodemgr, NUMBER, NODE_FROM_INT(idx), Nil);
-        instantiate_array_define(st, layer,
-                                  find_node(nodemgr, ARRAY, name, index),
-                                  mod_name, car(iter));
-      }
-      break;
+      /* Instantiate name[idx] element */
+      index = find_node(nodemgr, NUMBER, NODE_FROM_INT(idx), Nil);
+      instantiate_array_define(st, layer,
+                               find_node(nodemgr, ARRAY, name, index),
+                               mod_name, car(iter));
     }
+    break;
+  }
 
   default:
-    {
-      /* Declare this element */
-      SymbLayer_declare_define(layer, name, mod_name, definition);
-    }
+  {
+    /* Declare this element */
+    SymbLayer_declare_define(layer, name, mod_name, definition);
+  }
   }
 }
 
@@ -3681,45 +3957,48 @@ void compile_add_assign_hrc(NodeMgr_ptr nodemgr,
 
   /* use a stack to preserve the order of assign declarations */
   stack = Slist_create();
-  while (Nil != assign_list) {
+  while (Nil != assign_list)
+  {
     Slist_push(stack, cdr(assign_list));
 
     assign_list = car(assign_list);
   } /* end while on assign_list */
 
-  while (! Slist_is_empty(stack)) {
+  while (!Slist_is_empty(stack))
+  {
     node_ptr assign_elem = NODE_PTR(Slist_pop(stack));
     node_ptr left_expr = car(assign_elem);
     node_ptr right_expr = cdr(assign_elem);
 
     /* determine init/next/invar part of an assign */
-    switch (node_get_type(left_expr)) {
+    switch (node_get_type(left_expr))
+    {
     case SMALLINIT:
-      {
-        /* init assign */
-        node_ptr assign_node = new_node(nodemgr, ASSIGN,
-                                        car(left_expr), right_expr);
-        HrcNode_add_init_assign_expr(hrc_result, assign_node);
-      }
+    {
+      /* init assign */
+      node_ptr assign_node = new_node(nodemgr, ASSIGN,
+                                      car(left_expr), right_expr);
+      HrcNode_add_init_assign_expr(hrc_result, assign_node);
+    }
 
-      break;
+    break;
 
     case NEXT:
-      {
-        /* next assign */
-        node_ptr assign_node = new_node(nodemgr, ASSIGN,
-                                        car(left_expr), right_expr);
-        HrcNode_add_next_assign_expr(hrc_result, assign_node);
-      }
-      break;
+    {
+      /* next assign */
+      node_ptr assign_node = new_node(nodemgr, ASSIGN,
+                                      car(left_expr), right_expr);
+      HrcNode_add_next_assign_expr(hrc_result, assign_node);
+    }
+    break;
 
     default:
-      {
-        /* Invar assign */
-        node_ptr assign_node = new_node(nodemgr, ASSIGN,
-                                        left_expr, right_expr);
-        HrcNode_add_invar_assign_expr(hrc_result, assign_node);
-      }
+    {
+      /* Invar assign */
+      node_ptr assign_node = new_node(nodemgr, ASSIGN,
+                                      left_expr, right_expr);
+      HrcNode_add_invar_assign_expr(hrc_result, assign_node);
+    }
     }
   } /* end while on assign_list */
 
@@ -3733,10 +4012,11 @@ void compile_add_assign_hrc(NodeMgr_ptr nodemgr,
    [AMa] This function can be removed when HRC will support processes and ISA
 */
 
-static HrcNode_ptr get_hrc_root_node (HrcNode_ptr node)
+static HrcNode_ptr get_hrc_root_node(HrcNode_ptr node)
 {
   HrcNode_ptr res = node;
-  while (!HrcNode_is_root(res)) {
+  while (!HrcNode_is_root(res))
+  {
     res = HrcNode_get_parent(res);
   }
   return res;
@@ -3753,8 +4033,11 @@ static int compile_flatten_get_int(node_ptr value)
   int res;
   WordNumberValue tmp;
   /* get the constants */
-  switch (node_get_type(value)) {
-  case NUMBER: res = node_get_int(value); break;
+  switch (node_get_type(value))
+  {
+  case NUMBER:
+    res = node_get_int(value);
+    break;
   case NUMBER_UNSIGNED_WORD:
     tmp = WordNumber_get_unsigned_value(WORD_NUMBER(car(value)));
     res = tmp;
@@ -3765,7 +4048,7 @@ static int compile_flatten_get_int(node_ptr value)
     res = tmp;
     nusmv_assert(res == tmp); /* overflow detection */
     break;
-  default: /* error: value is not a constant */
+  default:                    /* error: value is not a constant */
     error_unreachable_code(); /* only numeric constants can be here */
   }
   return res;
@@ -3784,7 +4067,8 @@ static node_ptr compile_flatten_normalise_value_list(NodeMgr_ptr nodemgr,
   node_ptr new_head;
 
   /* the list is empty */
-  if (old_value_list == Nil) return Nil;
+  if (old_value_list == Nil)
+    return Nil;
 
   /* normalise the tail */
   new_tail = compile_flatten_normalise_value_list(nodemgr, cdr(old_value_list));
@@ -3816,9 +4100,9 @@ compile_flatten_build_word_toint_ith_bit_case(const NuSMVEnv_ptr env,
                                               boolean is_neg)
 {
   const NodeMgr_ptr nodemgr =
-    NODE_MGR(NuSMVEnv_get_value(env, ENV_NODE_MGR));
+      NODE_MGR(NuSMVEnv_get_value(env, ENV_NODE_MGR));
   const WordNumberMgr_ptr words =
-    WORD_NUMBER_MGR(NuSMVEnv_get_value(env, ENV_WORD_NUMBER_MGR));
+      WORD_NUMBER_MGR(NuSMVEnv_get_value(env, ENV_WORD_NUMBER_MGR));
 
   node_ptr cond, bit_node, mul, zero, w1, res;
   int operator, mul_int, i;
@@ -3826,9 +4110,12 @@ compile_flatten_build_word_toint_ith_bit_case(const NuSMVEnv_ptr env,
   nusmv_assert(bit <= 32);
 
   mul_int = 1;
-  for (i = 0; i < bit; ++i) { mul_int = mul_int << 1; }
+  for (i = 0; i < bit; ++i)
+  {
+    mul_int = mul_int << 1;
+  }
 
-  operator = (is_neg ? NOTEQUAL : EQUAL);
+  operator=(is_neg ? NOTEQUAL : EQUAL);
 
   bit_node = find_node(nodemgr, NUMBER, NODE_FROM_INT(bit), Nil);
   mul = find_node(nodemgr, NUMBER, NODE_FROM_INT(mul_int), Nil);
@@ -3849,7 +4136,6 @@ compile_flatten_build_word_toint_ith_bit_case(const NuSMVEnv_ptr env,
   return res;
 }
 
-
 /*!
   \brief Check for the type of functions
 
@@ -3864,7 +4150,8 @@ static void _check_supported_function_types(const NuSMVEnv_ptr env,
   NodeList_ptr arg_types = NFunction_get_args(type);
   ListIter_ptr iter;
 
-  switch (SymbType_get_tag(ret_type)) {
+  switch (SymbType_get_tag(ret_type))
+  {
   case SYMB_TYPE_BOOLEAN:
   case SYMB_TYPE_INTEGER:
   case SYMB_TYPE_REAL:
@@ -3872,30 +4159,32 @@ static void _check_supported_function_types(const NuSMVEnv_ptr env,
   case SYMB_TYPE_SIGNED_WORD:
     break;
   default:
-    {
-      const ErrorMgr_ptr errmgr =
+  {
+    const ErrorMgr_ptr errmgr =
         ERROR_MGR(NuSMVEnv_get_value(env, ENV_ERROR_MANAGER));
-      const StreamMgr_ptr streams =
+    const StreamMgr_ptr streams =
         STREAM_MGR(NuSMVEnv_get_value(env, ENV_STREAM_MANAGER));
-      const MasterPrinter_ptr wffprint =
+    const MasterPrinter_ptr wffprint =
         MASTER_PRINTER(NuSMVEnv_get_value(env, ENV_WFF_PRINTER));
 
-      ErrorMgr_start_parsing_err(errmgr);
-      StreamMgr_print_error(streams,  "Declaration of function '");
-      StreamMgr_nprint_error(streams, wffprint, "%N", name);
-      StreamMgr_print_error(streams,  "':\n");
-      StreamMgr_print_error(streams,
-                            "Error: Currently allowed return types are boolean, "\
-                            "integer, real and (un)signed words\n");
-      ErrorMgr_finish_parsing_err(errmgr);
-    }
-    break;
+    ErrorMgr_start_parsing_err(errmgr);
+    StreamMgr_print_error(streams, "Declaration of function '");
+    StreamMgr_nprint_error(streams, wffprint, "%N", name);
+    StreamMgr_print_error(streams, "':\n");
+    StreamMgr_print_error(streams,
+                          "Error: Currently allowed return types are boolean, "
+                          "integer, real and (un)signed words\n");
+    ErrorMgr_finish_parsing_err(errmgr);
+  }
+  break;
   }
 
-  NODE_LIST_FOREACH(arg_types, iter) {
+  NODE_LIST_FOREACH(arg_types, iter)
+  {
     SymbType_ptr t = SYMB_TYPE(NodeList_get_elem_at(arg_types, iter));
 
-    switch (SymbType_get_tag(t)) {
+    switch (SymbType_get_tag(t))
+    {
     case SYMB_TYPE_BOOLEAN:
     case SYMB_TYPE_INTEGER:
     case SYMB_TYPE_REAL:
@@ -3903,24 +4192,24 @@ static void _check_supported_function_types(const NuSMVEnv_ptr env,
     case SYMB_TYPE_SIGNED_WORD:
       break;
     default:
-      {
-        const ErrorMgr_ptr errmgr =
+    {
+      const ErrorMgr_ptr errmgr =
           ERROR_MGR(NuSMVEnv_get_value(env, ENV_ERROR_MANAGER));
-        const StreamMgr_ptr streams =
+      const StreamMgr_ptr streams =
           STREAM_MGR(NuSMVEnv_get_value(env, ENV_STREAM_MANAGER));
-        const MasterPrinter_ptr wffprint =
+      const MasterPrinter_ptr wffprint =
           MASTER_PRINTER(NuSMVEnv_get_value(env, ENV_WFF_PRINTER));
 
-        ErrorMgr_start_parsing_err(errmgr);
-        StreamMgr_print_error(streams,  "Declaration of function '");
-        StreamMgr_nprint_error(streams, wffprint, "%N", name);
-        StreamMgr_print_error(streams,  "':\n");
-        StreamMgr_print_error(streams,
-                              "Error: Currently allowed arguments types are boolean, " \
-                              "integer, real and (un)signed words\n");
-        ErrorMgr_finish_parsing_err(errmgr);
-        break;
-      }
+      ErrorMgr_start_parsing_err(errmgr);
+      StreamMgr_print_error(streams, "Declaration of function '");
+      StreamMgr_nprint_error(streams, wffprint, "%N", name);
+      StreamMgr_print_error(streams, "':\n");
+      StreamMgr_print_error(streams,
+                            "Error: Currently allowed arguments types are boolean, "
+                            "integer, real and (un)signed words\n");
+      ErrorMgr_finish_parsing_err(errmgr);
+      break;
+    }
     }
   }
 }

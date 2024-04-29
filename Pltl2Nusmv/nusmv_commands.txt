@@ -1,0 +1,4 @@
+set on_failure_script_quits;
+go;
+check_realizability;
+quit;

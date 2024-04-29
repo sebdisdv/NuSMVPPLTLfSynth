@@ -1,0 +1,1 @@
+O(communicated_soil_data-waypoint2 & !Y(O(communicated_rock_data-waypoint3))) & O(communicated_rock_data-waypoint3 & !Y(O(communicated_image_data-objective1-high_res))) & O(communicated_image_data-objective1-high_res) & !(!(((!at-rover0-waypoint0) S calibrated-camera0-rover0)) & O(at-rover0-waypoint0))
