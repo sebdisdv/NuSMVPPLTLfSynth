@@ -56,6 +56,9 @@ class PLTL2NuSmv():
         
         # print(self._formula)
         
+        if not path.isdir(path.join("Pltl2Nusmv", "output")):
+            os.mkdir(path.join("Pltl2Nusmv", "output"))
+        
         if not path.isdir(f"Pltl2Nusmv/output/{problem_name}"):
             os.mkdir(f"Pltl2Nusmv/output/{problem_name}")
         

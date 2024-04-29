@@ -79,6 +79,9 @@ def prepare_dataset(f):
     with open(j_file, "r") as js:
         j_file = json.load(js)
 
+    if not path.isdir(path.join("Pltl2Nusmv", "input")):
+        os.mkdir(path.join("Pltl2Nusmv", "input"))
+    
     if os.path.isdir(f"Pltl2Nusmv/input/{base_name}"):
         rmtree(f"Pltl2Nusmv/input/{base_name}")
 
@@ -103,6 +106,10 @@ def prepare_dataset(f):
                 wf2.write(f"{','.join(v['uncontrollable'])}\n")
 
     print(f"Wrote files to 'Pltl2Nusmv/input/{base_name}")
+    
+    
+    
+    
     return os.path.join("Pltl2Nusmv", "input", base_name)
 
 
@@ -327,33 +334,27 @@ if __name__ == "__main__":
     argsparser.add_argument(
         "-k",
         "--nike",
-        default=False,
-        required=False,
-        type=bool,
+        action='store_true',
         help="enable nike",
     )
     argsparser.add_argument(
         "-m",
         "--syftmax",
-        default=False,
-        required=False,
-        type=bool,
+        action='store_true',
         help="enable syftmax",
     )
     argsparser.add_argument(
         "-s",
         "--synthetico",
-        default=False,
-        required=False,
-        type=bool,
+        action='store_true',
         help="enable synthetico",
     )
     
-    load_dotenv()
-    check_res_dir()
     
     settings = vars(argsparser.parse_args())
-
+    
+    load_dotenv()
+    check_res_dir()
     res_nusmv = main(settings)
     res_nike = main_nike(settings) if settings["nike"] else None
     res_syftmax = main_SyftMax(settings) if settings["syftmax"] else None
